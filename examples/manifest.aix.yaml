@@ -1,0 +1,8 @@
+aix: "0.1"
+name: example-payments
+description: A tiny worked AIX bundle demonstrating identity, typed links and provenance.
+producer: hand-authored
+generated: 2026-07-18T09:12:00Z
+conformance: 2
+counts:
+  concepts: 4
