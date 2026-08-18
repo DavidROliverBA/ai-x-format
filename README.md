@@ -9,6 +9,8 @@ AIX is a **strict superset of Google Cloud's [Open Knowledge Format
 v0.1**. Every AIX bundle is also a valid OKF bundle, so your knowledge is
 readable by OKF-only agents today while AIX-aware agents get a richer graph.
 
+[![OKF BundleDex](https://bundledex.net/static-badge.svg)](https://bundledex.net)
+
 - **Spec:** [`SPEC.md`](./SPEC.md)
 - **Worked example bundle:** [`examples/`](./examples/)
 - **Reference validator:** [`tools/aix-validate.py`](./tools/aix-validate.py)
