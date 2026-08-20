@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AIX v0.1 reference validator.
+"""AIX v0.2 reference validator.
 
 Validates an AIX bundle against the conformance ladder defined in ../SPEC.md:
 
@@ -8,8 +8,13 @@ Validates an AIX bundle against the conformance ladder defined in ../SPEC.md:
   Level 1  AIX Core        — Level 0 + unique `id` per concept + manifest.aix.yaml
                              declaring `aix` and `name`.
   Level 2  AIX Full        — Level 1 + every `links` entry is a valid link object
-                             (rel + resolvable `to`) mirrored by a body link,
-                             + a `provenance` map on every concept.
+                             (rel + resolvable `to`), same-bundle links mirrored
+                             by a body link, + trust signals on every concept
+                             (a `provenance` map or an OKF v0.2 trust field),
+                             + every `media` entry carries a `uri`.
+  Level 3  AIX Federated   — Level 2 + manifest declares a valid `namespace`
+                             and `vocabularies`; qualified references are
+                             well-formed `namespace/id`.
 
 Usage:
     python3 aix-validate.py <bundle-dir> [--level N] [--json]
@@ -33,8 +38,23 @@ CORE_RELS = {
     "relates-to", "part-of", "has-part", "depends-on", "depended-on-by",
     "references", "referenced-by", "derived-from", "source-of",
     "supersedes", "superseded-by", "contradicts", "authored-by",
-    "author-of",
+    "author-of", "describes", "described-by",
 }
+
+# Registered extension rels (SPEC §6.2) — allowed without a warning.
+EXT_RELS = {
+    "depicts", "depicted-in", "remediates", "remediated-by",
+    "discusses", "discussed-in",
+}
+
+# OKF v0.2 trust/lifecycle fields — any one satisfies the Level 2 trust rule.
+OKF_TRUST_FIELDS = ("sources", "generated", "verified", "status", "stale_after")
+
+# Deprecated v0.1 keys (SPEC §7.3) — read, don't write.
+DEPRECATED_PROV_KEYS = ("verified", "freshness", "reviewed")
+
+QUALIFIED_RE = re.compile(r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")
+HASH_RE = re.compile(r"^[a-z0-9]+:[0-9a-fA-F…]+$")
 
 # --- YAML loading (PyYAML if available, else a minimal fallback) -------------
 
@@ -213,6 +233,8 @@ def validate(bundle: Path, target_level: int):
         cid = fm.get("id")
         if cid:
             cid = str(cid)
+            if "/" in cid:
+                findings.append(Finding("error", rel, f"id `{cid}` must not contain `/` (reserved for qualified references)"))
             if cid in ids:
                 findings.append(Finding("error", rel, f"duplicate id `{cid}` (also in {ids[cid]})"))
             else:
@@ -237,11 +259,35 @@ def validate(bundle: Path, target_level: int):
 
     # Level 2 checks
     if target_level >= 2:
-        known = set(ids.keys()) | set(parsed.keys())
-        # also allow path targets relative to each concept
         for rel, (fm, body, p) in parsed.items():
-            if not isinstance(fm.get("provenance"), dict):
-                findings.append(Finding("error", rel, "missing `provenance` map (required at Level 2)"))
+            # trust signals: AIX provenance map OR any OKF v0.2 trust field
+            has_prov = isinstance(fm.get("provenance"), dict)
+            has_okf_trust = any(fm.get(k) is not None for k in OKF_TRUST_FIELDS)
+            if not has_prov and not has_okf_trust:
+                findings.append(Finding("error", rel, "no trust signals: needs a `provenance` map or an OKF v0.2 trust field (required at Level 2)"))
+            # deprecated v0.1 forms (SPEC §7.3) — warn, don't fail
+            if fm.get("timestamp") is not None:
+                findings.append(Finding("warning", rel, "`timestamp` is deprecated — use `generated.at` (OKF v0.2)"))
+            if has_prov:
+                for k in DEPRECATED_PROV_KEYS:
+                    if fm["provenance"].get(k) is not None:
+                        findings.append(Finding("warning", rel, f"`provenance.{k}` is deprecated (SPEC §7.3) — use the OKF v0.2 field"))
+            # media entries
+            media = fm.get("media")
+            if media is not None:
+                if not isinstance(media, list):
+                    findings.append(Finding("error", rel, "`media` must be a list"))
+                else:
+                    for idx, entry in enumerate(media):
+                        where = f"media[{idx}]"
+                        if not isinstance(entry, dict) or not entry.get("uri"):
+                            findings.append(Finding("error", rel, f"{where} must be a mapping with a `uri`"))
+                            continue
+                        h = entry.get("hash")
+                        if h is None:
+                            findings.append(Finding("warning", rel, f"{where} has no `hash` — asset identity degrades to its URI"))
+                        elif not HASH_RE.match(str(h)):
+                            findings.append(Finding("warning", rel, f"{where} `hash: {h}` is not `<algo>:<hex>` form"))
             links = fm.get("links")
             if links is None:
                 continue
@@ -258,7 +304,7 @@ def validate(bundle: Path, target_level: int):
                 to = link.get("to")
                 if not relv:
                     findings.append(Finding("error", rel, f"{where} missing `rel`"))
-                elif relv not in CORE_RELS:
+                elif relv not in CORE_RELS and relv not in EXT_RELS:
                     findings.append(Finding("warning", rel, f"{where} uses non-core rel `{relv}` (allowed; treated as relates-to)"))
                 if not to:
                     findings.append(Finding("error", rel, f"{where} missing `to`"))
@@ -269,12 +315,42 @@ def validate(bundle: Path, target_level: int):
                 if not resolved:
                     cand = (p.parent / to).resolve()
                     resolved = cand.exists()
+                # federation-qualified reference (SPEC §9.2): namespace/id,
+                # not resolvable as a same-bundle path — tolerated, no mirror rule
+                if not resolved and QUALIFIED_RE.match(to) and to not in ids:
+                    continue
                 if not resolved:
                     findings.append(Finding("warning", rel, f"{where} `to: {to}` does not resolve (tolerated — may be not-yet-written)"))
-                # body-link mirroring
+                # body-link mirroring (same-bundle targets only)
                 mirrored = to in btargets or Path(to).stem in btargets
                 if not mirrored:
                     findings.append(Finding("error", rel, f"{where} `to: {to}` not mirrored by a body markdown link (OKF-compat rule)"))
+
+    # Level 3 checks
+    if target_level >= 3:
+        manifest = bundle / MANIFEST_NAME
+        man = {}
+        if manifest.exists():
+            try:
+                man = load_yaml(manifest.read_text(encoding="utf-8")) or {}
+            except Exception:  # noqa: BLE001
+                man = {}
+        ns = man.get("namespace")
+        if not ns:
+            findings.append(Finding("error", MANIFEST_NAME, "missing `namespace` (required at Level 3)"))
+        elif not re.fullmatch(r"[a-z0-9][a-z0-9-]*", str(ns)):
+            findings.append(Finding("error", MANIFEST_NAME, f"`namespace: {ns}` must be lowercase kebab-case"))
+        vocab = man.get("vocabularies")
+        if not isinstance(vocab, dict) or not vocab.get("types") or not vocab.get("rels"):
+            findings.append(Finding("error", MANIFEST_NAME, "missing `vocabularies` with `types` and `rels` (required at Level 3)"))
+        for rel, (fm, _body, _p) in parsed.items():
+            for idx, link in enumerate(fm.get("links") or []):
+                if not isinstance(link, dict):
+                    continue
+                to = str(link.get("to") or "")
+                if "/" in to and not to.endswith(".md") and not to.startswith(".") \
+                        and not QUALIFIED_RE.match(to):
+                    findings.append(Finding("error", rel, f"links[{idx}] `to: {to}` is not a well-formed qualified reference (`namespace/id`)"))
 
     errors = [f for f in findings if f.level == "error"]
     return findings, concepts, errors
@@ -296,9 +372,9 @@ def concepts_count(bundle: Path) -> int:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Validate an AIX v0.1 bundle.")
+    ap = argparse.ArgumentParser(description="Validate an AIX v0.2 bundle.")
     ap.add_argument("bundle", type=Path, help="path to the bundle directory")
-    ap.add_argument("--level", type=int, default=2, choices=[0, 1, 2],
+    ap.add_argument("--level", type=int, default=2, choices=[0, 1, 2, 3],
                     help="highest conformance level to check (default 2)")
     ap.add_argument("--json", action="store_true", help="emit JSON")
     args = ap.parse_args()
@@ -324,7 +400,7 @@ def main():
 
     print(f"AIX validator — bundle: {bundle}")
     print(f"  concepts: {n}")
-    label = {0: "OKF-compatible", 1: "AIX Core", 2: "AIX Full", -1: "none"}
+    label = {0: "OKF-compatible", 1: "AIX Core", 2: "AIX Full", 3: "AIX Federated", -1: "none"}
     print(f"  highest level achieved: {highest} ({label.get(highest, '?')})")
     print(f"  checked at level: {args.level}")
     if not findings:

@@ -1,8 +1,12 @@
-aix: "0.1"
+aix: "0.2"
 name: example-payments
-description: A tiny worked AIX bundle demonstrating identity, typed links and provenance.
+namespace: example-payments
+description: A tiny worked AIX bundle demonstrating identity, typed links, trust signals, media identity and federation.
 producer: hand-authored
-generated: 2026-07-18T09:12:00Z
-conformance: 2
+generated: 2026-08-20T09:12:00Z
+conformance: 3
+vocabularies:
+  types: https://example.com/federation/types-v1.json
+  rels: https://example.com/federation/rels-v1.json
 counts:
   concepts: 4

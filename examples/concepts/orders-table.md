@@ -5,14 +5,21 @@ title: Orders Table
 description: One row per completed customer order.
 resource: https://internal.example.com/data/orders
 tags: [data, orders]
-timestamp: 2026-05-28T14:30:00Z
+
+generated:
+  by: human:jane-doe
+  at: 2026-05-28T14:30:00Z
+verified:
+  - by: pipeline:schema-checker
+    at: 2026-08-01
+  - by: human:jane-doe
+    at: 2026-05-28
+status: active
+stale_after: 2027-05-28
 
 provenance:
   confidence: high
-  freshness: current
   source: primary
-  verified: true
-  reviewed: 2026-05-28
 
 links:
   - rel: referenced-by

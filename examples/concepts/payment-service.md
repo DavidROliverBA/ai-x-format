@@ -5,15 +5,25 @@ title: Payment Service
 description: Handles authorisation and capture for all customer payments.
 resource: https://internal.example.com/services/payment
 tags: [platform, payments]
-timestamp: 2026-07-18T09:12:00Z
 aliases: [Payments API, PaymentSvc]
 
+# OKF v0.2 trust & lifecycle
+generated:
+  by: human:jane-doe
+  at: 2026-07-18T09:12:00Z
+verified:
+  - by: human:jane-doe
+    at: 2026-07-18
+status: deprecated
+stale_after: 2026-12-31
+sources:
+  - uri: https://internal.example.com/runbooks/payments
+    title: Payments runbook
+
+# AIX additions
 provenance:
   confidence: high
-  freshness: current
   source: primary
-  verified: true
-  reviewed: 2026-07-18
 
 links:
   - rel: depends-on
@@ -24,6 +34,12 @@ links:
     note: v2 replaces the synchronous capture flow with events.
   - rel: authored-by
     to: jane-doe
+
+media:
+  - uri: https://internal.example.com/diagrams/payment-flow.png
+    hash: sha256:9f2c8a41d6e07b3355c1a2f4e8b9d0c7a6f5e4d3c2b1a09876543210fedcba98
+    title: Payment capture flow (v1, synchronous)
+    describes: payment-service
 ---
 
 # Overview
