@@ -2,7 +2,7 @@
 
 > A portable, vendor-neutral format for curated knowledge that both humans and
 > AI agents produce and consume — with **stable identity, typed relationships,
-> provenance, media identity, and federation** built in.
+> provenance, media identity, federation, and change semantics** built in.
 
 AIX is a **strict superset of Google Cloud's [Open Knowledge Format
 (OKF)](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf)
@@ -12,6 +12,7 @@ readable by OKF-only agents today while AIX-aware agents get a richer graph.
 - **Spec:** [`SPEC.md`](./SPEC.md)
 - **Worked example bundle:** [`examples/`](./examples/)
 - **Reference validator:** [`tools/aix-validate.py`](./tools/aix-validate.py)
+- **Reference curation policy (non-normative):** [`CURATOR.md`](./CURATOR.md)
 
 ---
 
@@ -23,14 +24,19 @@ OKF is an excellent floor: markdown files + YAML frontmatter + link graph, with
 as-is. But OKF still deliberately stops short of what a knowledge base needs
 for *reasoning*:
 
-| Capability | OKF v0.2 | AIX v0.2 |
+| Capability | OKF v0.2 | AIX v0.3 |
 |---|---|---|
 | Markdown + YAML, human-readable, git-diffable | ✅ | ✅ |
 | Only `type` required | ✅ | ✅ (Level 0) |
 | Trust & lifecycle (`sources`, `generated`, `verified`, `status`, `stale_after`) | ✅ | ✅ (adopted unchanged) |
 | Identity | **File path** — breaks on move/rename | **Stable `id`** — survives moves |
 | Relationships | **Untyped** links; meaning only in prose | **Typed** edges (`depends-on`, `supersedes`, `contradicts`, `describes`, …) with inverses |
-| Trust class | — | `confidence` + epistemic `source` class |
+| Trust class | — | Epistemic `source` class; asserted `confidence` as a tie-breaker |
+| Per-claim attribution | ✅ footnotes keyed to `sources[].id` | ✅ (inherited; recommended for agent-rewritten content) |
+| Disagreement | — | **Contradiction lifecycle**: `open` / `resolved`, who ruled, and the outcome |
+| Evidence | — | `supports` edges; `type: Claim` recommended |
+| Merge and split | — | Tombstones, `merged-into` / `split-from`, successor redirects |
+| Curation activity | Prose `log.md` | Controlled log vocabulary, so a bundle can report its own Update:Creation ratio |
 | Binary assets | Opaque URIs | **Content-hash identity** + embedding pointers (`media`) |
 | Multiple teams | One bundle at a time | **Federation**: namespaces, qualified cross-bundle links, shared vocabularies |
 | Bundle manifest | — | `manifest.aix.yaml` |
@@ -38,6 +44,19 @@ for *reasoning*:
 
 AIX adds exactly those capabilities and nothing else load-bearing. It stays
 "just files".
+
+## Knowledge at rest, knowledge in motion
+
+v0.1 and v0.2 describe a concept *at rest*: what it is called, what it links
+to, how far to trust it. v0.3 describes it *changing*: that two concepts
+disagree and nobody has ruled yet, that two were merged, that a claim gained
+support. A knowledge base compounds only when new material changes existing
+concepts, and you cannot see whether that is happening in a format that cannot
+express it.
+
+The format still cannot make a curator behave. That is policy, and it ships
+separately as [`CURATOR.md`](./CURATOR.md): six rules and four numbers to paste
+into your agent's instructions.
 
 ## Origin
 
@@ -47,7 +66,9 @@ converged on independently — stable identifier foreign keys, typed relationshi
 indicators (`confidence` / `freshness` / `source` / `verified`). That model
 turned out to be a superset of OKF; AIX is that superset written down as a
 portable standard. v0.2 tracks OKF v0.2 and extends the model to binary assets
-and multi-team federation.
+and multi-team federation. v0.3 came from auditing that same vault and finding
+the fields present but unused: 138 notes with a `contradicts` field, six filled
+in.
 
 ## The compatibility contract
 
@@ -88,7 +109,7 @@ generated:
 verified:
   - by: human:jane-doe
     at: 2026-08-20
-status: active
+status: stable
 stale_after: 2027-02-20
 provenance:
   confidence: high
@@ -120,12 +141,20 @@ Validate any bundle:
 python3 tools/aix-validate.py examples/          # check the example bundle
 python3 tools/aix-validate.py path/to/bundle --level 3
 python3 tools/aix-validate.py path/to/bundle --json
+python3 tools/aix-validate.py path/to/bundle --stats   # curation health
 ```
+
+`--stats` never affects pass/fail. It reports trust tiers, staleness, open and
+resolved contradictions, per-claim citation coverage, the spread of asserted
+confidence, and the Update:Creation ratio from `log.md`.
 
 ## Status
 
-AIX v0.2 is a draft, designed for backward-compatible growth. v0.1 bundles
-remain valid input; deprecated fields (`timestamp`, `provenance.verified`,
+AIX v0.3 is a draft, designed for backward-compatible growth. Every v0.2 bundle
+is a valid v0.3 bundle. v0.3 also corrects three spellings where AIX v0.2
+deviated from the OKF v0.2 it claimed to adopt (`status: active`,
+`sources[].uri`, `agent:` / `pipeline:` actors); the validator warns on the old
+forms. v0.1 bundles remain valid input; deprecated fields (`timestamp`, `provenance.verified`,
 `provenance.freshness`, `provenance.reviewed`) are read but should no longer be
 written — see the changelog in [`SPEC.md`](./SPEC.md) §13. Feedback and
 alternative implementations welcome.

@@ -11,7 +11,7 @@ generated:
 verified:
   - by: human:jane-doe
     at: 2026-05-28
-status: active
+status: stable
 
 provenance:
   confidence: high

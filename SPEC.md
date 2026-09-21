@@ -1,17 +1,17 @@
 # AIX — AI eXchange Format
 
-**Version:** 0.2
+**Version:** 0.3
 **Status:** Draft
-**Date:** 2026-08-20
-**Supersedes:** v0.1 (2026-07-18)
+**Date:** 2026-09-21
+**Supersedes:** v0.2 (2026-08-20)
 
 AIX is an open, vendor-neutral format for representing curated knowledge so that
 humans and AI agents can produce and consume it without a translation layer. It
 is a **strict superset of the Open Knowledge Format (OKF) v0.2**: every
 conformant AIX bundle is also a conformant OKF bundle, so AIX content degrades
 gracefully to OKF-only consumers while AIX-aware consumers get a richer model —
-**stable identity, typed relationships, provenance, media identity, and
-federation**.
+**stable identity, typed relationships, provenance, media identity,
+federation, and change semantics**.
 
 > The keywords MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY are used as defined in
 > RFC 2119.
@@ -23,8 +23,8 @@ federation**.
 OKF proved that a directory of markdown files with YAML frontmatter is enough to
 make knowledge portable. OKF v0.2 (2026-07-25) added trust and lifecycle
 signals — `sources`, `generated`, `verified`, `status`, `stale_after` — which
-closed one of the three gaps AIX v0.1 identified. Two gaps remain open, and
-scale has exposed two more:
+closed one of the three gaps AIX v0.1 identified. Two gaps remain open, scale
+has exposed two more, and use has exposed a fifth:
 
 1. **Stable identity.** OKF makes the file path the identity of a concept. Move
    or rename a file and every reference breaks. Real vaults move notes
@@ -38,6 +38,12 @@ scale has exposed two more:
 4. **Federation.** The moment a second team publishes a bundle, ids collide,
    vocabularies drift, and trust signals stop being comparable. A format that
    only works inside one bundle stops at the edge of one team.
+5. **Change.** Every field above describes a concept *at rest*. None records
+   what happened when new knowledge met old: that two concepts disagree and
+   nobody has ruled yet, that two concepts were merged, that a claim gained or
+   lost support. A knowledge base compounds only when new material changes
+   existing concepts, and a format that cannot express that change cannot show
+   whether it is happening.
 
 AIX adds exactly these capabilities and nothing else load-bearing. It stays
 "just markdown + YAML + files": readable without tooling, diffable in version
@@ -47,13 +53,14 @@ control, parseable without a bespoke SDK, portable across tools and time.
 
 ## 2. Relationship to OKF (the compatibility contract)
 
-AIX v0.2 is defined as a superset of **OKF v0.2**. The contract is:
+AIX v0.3 is defined as a superset of **OKF v0.2**. The contract is:
 
 - **Every AIX concept file MUST be a valid OKF concept file** — parseable YAML
   frontmatter with a non-empty `type` field.
 - **AIX adopts OKF v0.2's trust and lifecycle fields as-is** (`sources`,
-  `generated`, `verified`, `status`, `stale_after`). AIX does not redefine
-  them; it builds on them (§7).
+  `generated`, `verified`, `status`, `stale_after`), including their value
+  vocabularies, the actor convention, and per-claim footnote attribution. AIX
+  does not redefine them; it builds on them (§7).
 - **All AIX-specific data lives in frontmatter keys or an inline link
   convention that OKF consumers preserve or ignore.** OKF's conformance rules
   require consumers to preserve unknown keys and tolerate unknown content, so
@@ -64,7 +71,7 @@ AIX v0.2 is defined as a superset of **OKF v0.2**. The contract is:
 
 The result: **publish once, consumed by both.** An OKF agent sees a valid OKF
 bundle. An AIX agent sees the same bundle plus identity, edge types, richer
-provenance, media identity, and federation.
+provenance, media identity, federation, and change semantics.
 
 Bundles authored against OKF v0.1 conventions (a `timestamp` field; a body
 `# Citations` list) remain valid AIX input. Consumers MUST tolerate both
@@ -117,15 +124,16 @@ aliases: [Payments API, PaymentSvc]
 
 # OKF v0.2 trust & lifecycle (shared vocabulary — §7)
 generated:
-  by: agent:vault-exporter
+  by: vault-exporter/1.0
   at: 2026-08-20T09:12:00Z
 verified:
   - by: human:jane-doe
     at: 2026-08-20
-status: active
+status: deprecated
 stale_after: 2027-02-20
 sources:
-  - uri: https://internal.example.com/runbooks/payments
+  - id: payments-runbook
+    resource: https://internal.example.com/runbooks/payments
     title: Payments runbook
 
 # AIX additions
@@ -150,10 +158,14 @@ media:
 
 The payment service depends on the [orders table](../concepts/orders-table.md)
 and is being replaced by [payment service v2](./payment-service-v2.md).
+Capture is synchronous.[^payments-runbook]
+
+[^payments-runbook]: Payments runbook
 ```
 
 Note that the two links in the body mirror the two typed `links` entries — that
-is the OKF-compatibility rule from §2.
+is the OKF-compatibility rule from §2. The footnote label is a `sources[].id`:
+OKF v0.2's per-claim attribution, which AIX inherits unchanged (§7.4).
 
 ---
 
@@ -192,8 +204,8 @@ is the OKF-compatibility rule from §2.
 | `tags` | list of string | Cross-cutting categorisation. |
 | `generated` | map | Producer and time of last generation (OKF v0.2). `generated.at` replaces v0.1's `timestamp`. |
 | `verified` | list of maps | Verification events with actor-prefixed `by` (OKF v0.2). |
-| `sources` | list of maps | Provenance of the content (OKF v0.2). Replaces the v0.1 body `# Citations` list. |
-| `status` | string | Lifecycle state (OKF v0.2), e.g. `active`, `deprecated`, `draft`. |
+| `sources` | list of maps | Provenance of the content (OKF v0.2): each entry has a REQUIRED `resource` and an optional `id` used as a footnote label for per-claim attribution (§7.4). Replaces the v0.1 body `# Citations` list. |
+| `status` | string | Lifecycle state (OKF v0.2): `draft`, `stable` or `deprecated`. Absent ⇒ `stable`. |
 | `stale_after` | ISO 8601 date | Absolute date after which the content SHOULD be treated as stale (OKF v0.2). |
 | `timestamp` | ISO 8601 datetime | **Deprecated** (OKF v0.1). Read as a fallback for `generated.at`; do not emit in new bundles. |
 
@@ -226,6 +238,10 @@ map:
 | `rel` | string | MUST | The relationship type (§6.2). |
 | `to` | string | MUST | Target concept: an `id` (preferred), a bundle-relative path, or a federation-qualified reference `namespace/id` (§9). |
 | `note` | string | MAY | One-line human explanation of this specific edge. |
+| `by` | string | MAY | The actor that asserted this edge, in OKF's actor convention (§7.1). Lets a consumer tell an edge a person drew from one an agent inferred. *(v0.3)* |
+| `at` | ISO 8601 date/datetime | MAY | When the edge was asserted. *(v0.3)* |
+| `state` | `open` \| `resolved` | MAY | Lifecycle of a `contradicts` edge (§6.5). Meaningless on other rels; consumers MUST ignore it there. *(v0.3)* |
+| `resolved` | map | MAY | How a contradiction was settled: `by`, `at`, and optional `outcome` (§6.5). *(v0.3)* |
 
 A link asserts a **directed** edge from the containing concept to `to`.
 
@@ -244,7 +260,10 @@ treat an unknown `rel` as a generic `relates-to` edge rather than rejecting it.
 | `references` | `referenced-by` | Cites or points at the target. |
 | `derived-from` | `source-of` | Was produced from the target. |
 | `supersedes` | `superseded-by` | Replaces the target (target is deprecated). |
-| `contradicts` | `contradicts` | Known conflict (symmetric); resolution SHOULD be in prose. |
+| `contradicts` | `contradicts` | Known conflict (symmetric). Carries a lifecycle (§6.5). |
+| `supports` | `supported-by` | The containing concept is evidence for the target (added in v0.3). The counterpart to `contradicts`: together they let a consumer see how a claim stands. |
+| `merged-into` | `merged-from` | The containing concept was absorbed by the target and is now a tombstone (added in v0.3; §6.6). |
+| `split-from` | `split-into` | The containing concept was carved out of the target (added in v0.3; §6.6). |
 | `authored-by` | `author-of` | Attribution to a person/agent concept. |
 | `describes` | `described-by` | Explains or documents the target (added in v0.2; the primary edge between documentation, media, and subject). |
 
@@ -280,6 +299,76 @@ the target exists, and MAY be omitted from the body where none does.
 A markdown body link whose target has **no** corresponding `links` entry is
 treated as an untyped `relates-to` edge (OKF behaviour preserved).
 
+### 6.5 Contradiction lifecycle (new in v0.3)
+
+A contradiction is the most valuable signal a curated knowledge base produces,
+and the easiest to destroy: an agent asked to integrate new material will, by
+default, rewrite the old text until everything agrees again. v0.2 said the
+resolution "SHOULD be in prose", which left a bundle unable to answer the basic
+question *which disagreements are still open?* v0.3 gives the edge a state.
+
+```yaml
+links:
+  - rel: contradicts
+    to: orders-db-is-not-the-bottleneck
+    state: open
+    by: curator/1.0
+    at: 2026-09-21
+    note: Load test on 2026-09-18 shows headroom on the orders database.
+```
+
+- A `contradicts` edge with no `state` MUST be read as `open`.
+- Producers recording a contradiction SHOULD keep **both** concepts intact and
+  MUST NOT silently reconcile their text as a substitute for the edge.
+- To settle it, set `state: resolved` and add a `resolved` map:
+
+```yaml
+    state: resolved
+    resolved:
+      by: human:jane-doe
+      at: 2026-09-25
+      outcome: superseded      # superseded | reconciled | both-stand
+```
+
+| `outcome` | Meaning |
+|-----------|---------|
+| `superseded` | One side won. The winner SHOULD carry a `supersedes` edge to the loser, and the loser `status: deprecated`. |
+| `reconciled` | Both concepts were edited so they no longer conflict. |
+| `both-stand` | The conflict is real and accepted (different contexts, open science). The explanation belongs in `note` or the body. |
+
+- `resolved.by` follows the same logic as trust tiers (§7.1): a consumer MAY
+  treat a contradiction resolved only by a non-`human:` actor as still open.
+  The tier is *derived* by the consumer, not mandated on the producer.
+- Because `contradicts` is symmetric and SHOULD be declared once (§6.3), the
+  state lives on the declaring side. If both sides declare the edge and their
+  states disagree, consumers MUST treat the contradiction as `open`.
+
+### 6.6 Merge, split, and redirects (new in v0.3)
+
+Stable identity (§5.2) says an `id` never changes. Curation still merges two
+concepts that turn out to be one, and splits one that turns out to be two. The
+rules below keep every historical reference resolving.
+
+**Merge.** When concept B is absorbed into concept A:
+
+- B's file SHOULD remain as a **tombstone**: `status: deprecated`, a
+  `merged-into` link to A, and a body link to A (§6.4). Its body MAY be reduced
+  to that one line.
+- B's `id` MUST NOT be reused for a different concept.
+- A SHOULD add B's title and aliases to its own `aliases`, so search by the old
+  name lands on the survivor.
+- If B's file is deleted instead, A MUST list B's `id` in `aliases`; consumers
+  resolving an unknown `id` SHOULD fall back to an `aliases` match.
+
+**Split.** When concept C is carved out of concept A, C declares
+`split-from: A`. A keeps its `id`. Nothing is deprecated.
+
+**Redirects.** When a consumer resolves a reference to a concept whose `status`
+is `deprecated` and which declares exactly one `superseded-by` or `merged-into`
+edge, it SHOULD surface the successor alongside (or instead of) the deprecated
+concept. Consumers following successor chains MUST guard against cycles. A
+deprecated concept with no successor edge is simply retired; that is valid.
+
 ---
 
 ## 7. Provenance and trust
@@ -293,10 +382,10 @@ map shrinks to carry only what OKF still lacks.
 
 | Field | Meaning |
 |-------|---------|
-| `sources` | Where the content came from, as a list of `{uri, title, …}` maps. |
-| `generated` | Which actor produced the content and when (`by`, `at`). Actor names use OKF's prefix convention: `human:`, `agent:`, `pipeline:`. |
-| `verified` | A list of verification events (`by`, `at`). The actor prefix yields OKF's three trust tiers: unverified (empty/absent), machine-confirmed (`agent:`/`pipeline:`), human-reviewed (`human:`). |
-| `status` | Lifecycle state. |
+| `sources` | Where the content came from, as a list of maps. `resource` is REQUIRED per entry; `id`, `title` and OKF's credibility signals (`author`, `usage_count`, `last_modified`) are optional. |
+| `generated` | Which actor produced the content and when (`by`, `at`). Actors use OKF's convention: `<producer>/<version>` for agents and tools, `human:<id>` for a person, `process:<id>` for an automated process. |
+| `verified` | A list of verification events (`by`, `at`); a single bare map is read as a one-element list. The actor yields OKF's three trust tiers: unverified (absent), machine-confirmed (non-`human:` actors only), human-reviewed (any `human:` actor). |
+| `status` | Lifecycle state: `draft`, `stable` (the default when absent) or `deprecated`. |
 | `stale_after` | Absolute staleness date. Staleness is a plain date comparison, not a calculation. |
 
 ### 7.2 The AIX `provenance` map (what OKF lacks)
@@ -307,6 +396,15 @@ map shrinks to carry only what OKF still lacks.
 | `source` | `primary` \| `secondary` \| `synthesis` \| `external` | The epistemic class of the content: first-hand, documented, compiled, or imported. Distinct from `sources`, which records *which* documents; this records *what kind* of knowledge. |
 
 Producers MAY add custom provenance keys; consumers MUST preserve them.
+
+`confidence` is an **asserted** signal, and asserted signals drift: in the vault
+AIX was extracted from, 303 of 413 labelled notes claimed `high` and 10 claimed
+`low`, at which point the label no longer discriminates. OKF declines to store a
+credibility score for the same reason. Consumers SHOULD therefore rank on
+*derived* signals first — trust tier, `stale_after`, `supports` and open
+`contradicts` edges — and treat `confidence` as a tie-breaker. Producers SHOULD
+review the distribution across a bundle; the reference validator's `--stats`
+reports it and flags a lopsided one.
 
 ### 7.3 Deprecated v0.1 keys (read, don't write)
 
@@ -319,6 +417,41 @@ Producers MAY add custom provenance keys; consumers MUST preserve them.
 
 Consumers MUST tolerate both generations. Validators SHOULD warn on the
 deprecated forms without failing the bundle.
+
+AIX v0.2's own examples also drifted from OKF in three spellings. v0.3 corrects
+them; consumers MUST still read the old forms, and validators SHOULD warn:
+
+| AIX v0.2 spelling | Correct OKF v0.2 form |
+|-------------------|-----------------------|
+| `status: active` | `status: stable` |
+| `sources[].uri` | `sources[].resource` |
+| `agent:<id>` / `pipeline:<id>` actors | `<producer>/<version>` / `process:<id>` |
+
+### 7.4 Per-claim attribution (inherited from OKF)
+
+`sources` attaches evidence to a whole concept. To attach it to one sentence,
+OKF v0.2 uses a markdown footnote whose label is a `sources[].id`:
+
+```markdown
+Capture is synchronous.[^payments-runbook]
+
+[^payments-runbook]: Payments runbook
+```
+
+AIX inherits this unchanged and adds one recommendation: concepts whose content
+an agent may rewrite SHOULD cite per claim, not only per concept. Each rewrite
+is a paraphrase, and paraphrase compounds error as readily as insight; a claim
+that still points at its source can be re-checked, and a page of such claims can
+be rebuilt from evidence rather than from its own previous draft.
+
+### 7.5 Claims (recommended type, new in v0.3)
+
+A concept titled as a topic ("Voice latency") can only grow longer. A concept
+titled as a falsifiable statement ("Sub-200 ms voice replies need on-device
+processing") can be supported, contradicted or superseded, which is what gives
+the edges of §6.2 something to act on. Producers SHOULD use `type: Claim` for
+such concepts and keep topic concepts as maps that link to them. `Claim` is a
+recommended `type` value, not a registered one; §5.1 still applies.
 
 ---
 
@@ -417,7 +550,8 @@ redefine the actor-prefix convention within a federation.
 
 ### 10.1 `index.md` (OKF)
 
-- MUST NOT contain frontmatter.
+- MUST NOT contain frontmatter, with OKF's one exception: a bundle-root
+  `index.md` MAY carry an `okf_version` key.
 - Groups concepts under section headings with relative links and short
   descriptions, enabling progressive disclosure of a large bundle.
 
@@ -427,6 +561,29 @@ redefine the actor-prefix convention within a federation.
 - Date headings use `YYYY-MM-DD`. Entries are prose, optionally prefixed
   (`**Creation**`, `**Update**`, …).
 
+**AIX log vocabulary (new in v0.3).** OKF leaves the leading bold word as a
+convention. AIX fixes a small vocabulary for it, so that a bundle can report its
+own curation activity without reference to version control. The log remains a
+valid OKF log.
+
+| Leading word | Records |
+|--------------|---------|
+| `Initialization` | The bundle or directory was created. |
+| `Creation` | A new concept. |
+| `Update` | New material changed an existing concept. |
+| `Merge` | One concept was absorbed into another (§6.6). |
+| `Split` | One concept was carved out of another (§6.6). |
+| `Deprecation` | A concept was retired or superseded. |
+| `Contradiction` | A `contradicts` edge was opened (§6.5). |
+| `Resolution` | A contradiction was resolved. |
+| `Gap` | A question the bundle could not answer. A reading list, not a change. |
+
+Producers SHOULD write one entry per concept affected, SHOULD reference the
+concept by markdown link or backticked `id`, and SHOULD name the source that
+prompted the change. The ratio of `Update` to `Creation` entries over a period
+is the simplest available measure of whether a bundle is compounding or merely
+accumulating. Entries with an unknown leading word are valid and uncounted.
+
 ### 10.3 `manifest.aix.yaml` (AIX, optional)
 
 A single YAML file at the **bundle root** describing the bundle as a whole. It
@@ -434,7 +591,7 @@ is not a concept and does not affect OKF conformance (OKF ignores non-`.md`
 files). Recommended keys:
 
 ```yaml
-aix: "0.2"                     # spec version this bundle targets
+aix: "0.3"                     # spec version this bundle targets
 name: my-bundle                # bundle identifier
 namespace: my-bundle           # federation namespace (§9) — required at Level 3
 description: One-line summary of the bundle.
@@ -463,7 +620,7 @@ the highest it fully satisfies.
 |-------|------|--------------|
 | **0** | OKF-compatible | Valid OKF bundle: every non-reserved `.md` has parseable frontmatter with a non-empty `type`; reserved files follow their structures. |
 | **1** | AIX Core | Level 0, **plus** every concept has a unique `id`, **plus** a root `manifest.aix.yaml` declaring `aix` and `name`. |
-| **2** | AIX Full | Level 1, **plus** every `links` entry uses a valid link object (`rel` + resolvable `to`) and same-bundle links are mirrored by a body link (§6.4), **plus** every concept carries trust signals — a `provenance` map (§7.2) or at least one OKF v0.2 trust field (§7.1), **plus** every `media` entry (if any) carries a `uri`. |
+| **2** | AIX Full | Level 1, **plus** every `links` entry uses a valid link object (`rel` + resolvable `to`) and same-bundle links are mirrored by a body link (§6.4), **plus** every concept carries trust signals — a `provenance` map (§7.2) or at least one OKF v0.2 trust field (§7.1), **plus** every `media` entry (if any) carries a `uri`, **plus** any link `state` is `open` or `resolved` and any `resolved` map carries `by` (§6.5). |
 | **3** | AIX Federated | Level 2, **plus** the manifest declares a valid `namespace`, **plus** every cross-bundle reference is federation-qualified (§9.2), **plus** the manifest declares `vocabularies` (§9.3). |
 
 ### 11.1 Consumer obligations (all levels)
@@ -480,15 +637,26 @@ A conformant consumer:
 - SHOULD synthesise inverse edges (§6.3).
 - MUST preserve unknown keys when round-tripping a document.
 - MUST tolerate v0.1-generation fields per the mapping in §7.3.
+- MUST read a `contradicts` edge without `state` as open, and MUST ignore
+  `state` on any other rel (§6.5).
+- SHOULD surface the successor of a deprecated concept (§6.6), guarding against
+  cycles.
 
 This permissive model is what keeps AIX useful while bundles evolve and agents
 generate content.
 
 ---
 
-## 12. Portability note
+## 12. Scope: a format, not a policy
 
-AIX defines a *format*, not a policy. Content sensitivity, redaction, and
+AIX can record that a contradiction is open; it cannot make a curator record
+one. The discipline that makes a bundle compound — search before writing, keep
+evidence apart from synthesis, queue disagreements for a human, gate destructive
+changes — is **policy**, and lives outside this spec. A non-normative reference
+policy, written to be pasted into an agent's instructions, ships alongside it as
+[`CURATOR.md`](./CURATOR.md). Nothing in it is required for conformance.
+
+Likewise for sharing. AIX defines a *format*, not a policy. Content sensitivity, redaction, and
 outbound-sharing rules are the **producer's** responsibility and out of scope
 for this spec. Producers exporting into AIX for external exchange SHOULD apply
 their own sanitisation before publishing a bundle — and SHOULD remember that
@@ -501,6 +669,41 @@ their own sanitisation before publishing a bundle — and SHOULD remember that
 Bundles declare the version they target via `manifest.aix.yaml`'s `aix` key.
 Minor versions remain readable by earlier consumers under the permissive rules
 of §11.1.
+
+### Changelog — v0.3 (2026-09-21)
+
+Theme: v0.1 and v0.2 describe knowledge at rest. v0.3 describes it changing.
+
+**Corrected** (AIX v0.2 deviated from the OKF v0.2 it claimed to adopt — §7.3):
+
+- `status` values are OKF's `draft | stable | deprecated`; `active` was wrong.
+- `sources` entries use `resource`, not `uri`.
+- Actors use `<producer>/<version>`, `human:<id>`, `process:<id>`; the
+  `agent:` / `pipeline:` prefixes were wrong.
+- A bundle-root `index.md` MAY carry `okf_version` frontmatter.
+
+**Added:**
+
+- Link objects gain optional `by`, `at`, `state` and `resolved` (§6.1).
+- Contradiction lifecycle: `open` / `resolved`, with an `outcome` (§6.5).
+- `supports` / `supported-by`, `merged-into` / `merged-from` and `split-from` /
+  `split-into` join the core relationship vocabulary (§6.2).
+- Merge tombstones, split, and successor redirects (§6.6).
+- Per-claim attribution documented as inherited from OKF (§7.4).
+- `type: Claim` as a recommended type (§7.5).
+- A controlled leading-word vocabulary for `log.md` (§10.2).
+- `CURATOR.md`: a non-normative reference curation policy (§12).
+- Validator: `--stats` reports curation health; new warnings for the corrected
+  spellings above.
+
+**Changed:**
+
+- `provenance.confidence` is reframed as an asserted tie-breaker behind derived
+  signals (§7.2). It is not deprecated.
+- `contradicts` no longer says resolution "SHOULD be in prose".
+
+**Unchanged:** the superset contract, identity, mirroring, media, federation
+and the conformance ladder. Every v0.2 bundle is a valid v0.3 bundle.
 
 ### Changelog — v0.2 (2026-08-20)
 
@@ -556,5 +759,6 @@ Body is free-form.
 
 See the worked bundle in [`examples/`](./examples/) — the bundle passes the
 reference validator in [`tools/aix-validate.py`](./tools/aix-validate.py) at
-Level 3 and demonstrates OKF v0.2 trust fields, media identity, and a
-federation-qualified link.
+Level 3 and demonstrates OKF v0.2 trust fields, media identity, a
+federation-qualified link, per-claim attribution, an open contradiction
+between two claims, and a merge tombstone.

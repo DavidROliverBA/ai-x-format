@@ -17,7 +17,8 @@ verified:
 status: deprecated
 stale_after: 2026-12-31
 sources:
-  - uri: https://internal.example.com/runbooks/payments
+  - id: payments-runbook
+    resource: https://internal.example.com/runbooks/payments
     title: Payments runbook
 
 # AIX additions
@@ -52,5 +53,9 @@ Maintained by [Jane Doe](../people/jane-doe.md).
 
 # Notes
 
-Capture is currently synchronous, which couples throughput to the orders
-database. v2 addresses this.
+Capture is currently synchronous.[^payments-runbook] Whether that is what limits
+throughput is disputed: see the claim that
+[synchronous capture limits throughput](../claims/sync-capture-limits-throughput.md)
+and the open contradiction recorded against it.
+
+[^payments-runbook]: Payments runbook

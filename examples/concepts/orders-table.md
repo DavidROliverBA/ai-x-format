@@ -10,11 +10,11 @@ generated:
   by: human:jane-doe
   at: 2026-05-28T14:30:00Z
 verified:
-  - by: pipeline:schema-checker
+  - by: process:schema-checker
     at: 2026-08-01
   - by: human:jane-doe
     at: 2026-05-28
-status: active
+status: stable
 stale_after: 2027-05-28
 
 provenance:
