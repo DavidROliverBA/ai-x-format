@@ -11,10 +11,11 @@ AIX-aware agents read the same files and see more.
 
 | | |
 |---|---|
-| **Spec** | [`SPEC.md`](./SPEC.md) — v0.3, draft |
+| **Spec** | [`SPEC.md`](./SPEC.md) — v0.4, draft |
+| **Experiments** | [`experiments/`](./experiments/) — the runnable evidence behind v0.4's federation rules; numbers in [`RESULTS.md`](./experiments/RESULTS.md) |
 | **Curation policy** (non-normative) | [`CURATOR.md`](./CURATOR.md) — six rules and four numbers to paste into an agent's instructions |
 | **Worked example** | [`examples/`](./examples/) — passes the validator at Level 3 |
-| **Validator** | [`tools/aix-validate.py`](./tools/aix-validate.py) — conformance ladder plus `--stats` |
+| **Validator** | [`tools/aix-validate.py`](./tools/aix-validate.py) — conformance ladder, `--stats`, `--federation` |
 
 ---
 
@@ -33,7 +34,7 @@ contradiction, a merge, a claim gaining support. Everything stays "just files".
 
 ## What AIX adds to OKF
 
-| Capability | OKF v0.2 | AIX v0.3 |
+| Capability | OKF v0.2 | AIX v0.4 |
 |---|---|---|
 | Markdown + YAML, human-readable, git-diffable | ✅ | ✅ |
 | Only `type` required | ✅ | ✅ (Level 0) |
@@ -47,7 +48,7 @@ contradiction, a merge, a claim gaining support. Everything stays "just files".
 | Merge and split | — | tombstones, `merged-into` / `split-from`, successor redirects |
 | Curation activity | prose `log.md` | controlled leading-word vocabulary, so a bundle can report its own Update : Creation ratio |
 | Binary assets | opaque URIs | **content-hash identity** and embedding pointers (`media`) |
-| Multiple teams | one bundle at a time | **federation**: namespaces, qualified cross-bundle links, shared vocabularies |
+| Multiple teams | one bundle at a time | **federation**: namespaces, `namespace/id` and `aix://namespace/id` links, shared vocabularies, a consumer manifest with per-bundle provenance (`ref` or OCI `digest`), a resolution rule that never crosses a bundle boundary silently, and `imported` copies that do not inherit trust |
 | Bundle manifest | — | `manifest.aix.yaml` |
 | OKF interoperability | n/a | **guaranteed**: every AIX bundle is a valid OKF bundle |
 
@@ -66,6 +67,16 @@ happening. So v0.3 gives a `contradicts` link a state and a ruling, gives a
 merged concept a tombstone that points at its successor, gives evidence a
 `supports` edge, and fixes nine leading words for `log.md` so that updates,
 creations, contradictions and gaps can be counted without version control.
+
+**v0.4 adds federation with evidence.** Six experiments on three deliberately
+colliding fixture bundles (see [`experiments/RESULTS.md`](./experiments/RESULTS.md))
+decided what went in: a consumer manifest is needed for *provenance*, not for
+resolution (E1); unqualified references across bundles resolve deterministically
+and always warn (E2, zero silent misresolutions); trust fields survive any
+byte-moving transport and degrade only under parse-and-rewrite ingestion (E5);
+a signed OCI artifact catches tampering and its digest belongs in the
+federation manifest, never in the bundle's own (E6); and a tools-only MCP
+server can carry `namespace/id` end to end (E4).
 
 The format still cannot make a curator behave. That is policy, and it ships
 separately as [`CURATOR.md`](./CURATOR.md): search by meaning before writing,
@@ -160,6 +171,7 @@ python3 tools/aix-validate.py examples/                 # the example bundle
 python3 tools/aix-validate.py path/to/bundle --level 3
 python3 tools/aix-validate.py path/to/bundle --json
 python3 tools/aix-validate.py path/to/bundle --stats    # curation health
+python3 tools/aix-validate.py path/to/bundle --level 3 --federation federation.aix.yaml
 ```
 
 `--stats` never affects pass/fail. It reports trust tiers, staleness, open and
@@ -184,11 +196,14 @@ be a superset of OKF; AIX is that superset written down.
 - **v0.3** (2026-09-21): change semantics. Prompted by auditing the same vault
   and finding the fields present but unused: 138 notes with a `contradicts`
   field, six filled in.
+- **v0.4** (draft, 2026-09-26): federation with evidence. Explicit link form,
+  resolution rule, consumer manifest, `imported`, OCI distribution; every rule
+  tested in `experiments/` before it was written down.
 
 ## Status
 
-AIX v0.3 is a draft designed for backward-compatible growth. Every v0.2 bundle
-is a valid v0.3 bundle; v0.1 bundles remain valid input, with their deprecated
+AIX v0.4 is a draft designed for backward-compatible growth. Every v0.3 bundle
+is a valid v0.4 bundle, and every v0.2 bundle a valid v0.3 one; v0.1 bundles remain valid input, with their deprecated
 fields (`timestamp`, `provenance.verified` / `.freshness` / `.reviewed`) read
 but no longer written. See the changelog in [`SPEC.md`](./SPEC.md) §13.
 

@@ -29,11 +29,17 @@ Before creating a concept, look for an existing one — twice. First by `id`,
 `title` and `aliases`. Then by meaning: the duplicate that hurts is the one that
 uses different words, and keyword search will never find it.
 
+If the bundle is part of a federation, search the other held bundles too, and
+when you link across a boundary, qualify the reference (`namespace/id` or
+`aix://namespace/id`). An unqualified reference that only resolves in another
+bundle will be resolved for you, with a warning; do not leave it that way.
+
 Only then choose **one** move and record it in `log.md`:
 
 | Move | When | Log word |
 |------|------|----------|
 | Update | An existing concept covers this; the new material changes or extends it. | `Update` |
+| Import | The concept lives in another bundle and you need a local copy. Link it with `imported`; the copy does not inherit the source's trust. | `Creation` (with an `imported` link) |
 | Create | Nothing covers it. | `Creation` |
 | Merge | Two existing concepts turn out to be one. Keep a tombstone (SPEC §6.6). | `Merge` |
 | Split | One concept turns out to be two. | `Split` |
