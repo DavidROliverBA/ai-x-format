@@ -862,6 +862,15 @@ Bundles declare the version they target via `manifest.ai-x.yaml`'s `ai-x` key.
 Minor versions remain readable by earlier consumers under the permissive rules
 of §11.1.
 
+### Changelog — v0.4.1 (2026-09-26)
+
+**Fixed:** the reference validator's fallback YAML parser silently dropped a
+`links:` list whose items start at column 0 (PyYAML's default dump style), so
+bundles written by a PyYAML producer validated clean without PyYAML installed
+and warned with it. Both parsers now agree. Level 3 no longer demands
+per-bundle `vocabularies` when the federation manifest declares them (§9.5).
+Found by federating two real bundles (`experiments/real-federation/`, E7).
+
 ### Changelog — v0.4 (2026-09-26)
 
 **Renamed: AIX is now AI-X.** In prose and in every identifier: the manifest

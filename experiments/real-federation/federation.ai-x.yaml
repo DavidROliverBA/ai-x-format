@@ -1,0 +1,17 @@
+ai-x: "0.4"
+federation: davids-vault-federation
+vocabularies:
+  types: ./vocab/types-v1.json
+  rels:  ./vocab/rels-v1.json
+bundles:
+  - namespace: example-payments
+    source: git
+    repo: https://github.com/DavidROliverBA/ai-x-format
+    ref: "178479f"
+    subdir: examples
+  - namespace: psychology
+    source: path
+    path: ../../../psychology-kb
+  - namespace: ai-concepts
+    source: path
+    path: ../../../ai-concepts-kb

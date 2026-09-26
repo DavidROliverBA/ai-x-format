@@ -1,0 +1,33 @@
+{
+ "version": 1,
+ "values": [
+  {
+   "name": "Concept",
+   "definition": "A unit of knowledge: definition, principle, capability, theme, model, or bias"
+  },
+  {
+   "name": "Claim",
+   "definition": "A falsifiable statement that can be supported, contradicted or superseded"
+  },
+  {
+   "name": "System",
+   "definition": "A software system or service"
+  },
+  {
+   "name": "DataAsset",
+   "definition": "A table, dataset or stream"
+  },
+  {
+   "name": "Person",
+   "definition": "A person"
+  },
+  {
+   "name": "Policy",
+   "definition": "A rule an organisation applies"
+  },
+  {
+   "name": "Runbook",
+   "definition": "A procedure to follow"
+  }
+ ]
+}

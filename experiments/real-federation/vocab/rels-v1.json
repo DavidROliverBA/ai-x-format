@@ -1,0 +1,101 @@
+{
+ "version": 1,
+ "values": [
+  {
+   "name": "relates-to",
+   "definition": "Generic association"
+  },
+  {
+   "name": "part-of",
+   "definition": "Composition"
+  },
+  {
+   "name": "has-part",
+   "definition": "Inverse of part-of"
+  },
+  {
+   "name": "depends-on",
+   "definition": "Requires the target"
+  },
+  {
+   "name": "depended-on-by",
+   "definition": "Inverse of depends-on"
+  },
+  {
+   "name": "references",
+   "definition": "Cites the target"
+  },
+  {
+   "name": "referenced-by",
+   "definition": "Inverse of references"
+  },
+  {
+   "name": "derived-from",
+   "definition": "Produced from the target"
+  },
+  {
+   "name": "source-of",
+   "definition": "Inverse of derived-from"
+  },
+  {
+   "name": "supersedes",
+   "definition": "Replaces the target"
+  },
+  {
+   "name": "superseded-by",
+   "definition": "Inverse of supersedes"
+  },
+  {
+   "name": "contradicts",
+   "definition": "Known conflict (symmetric)"
+  },
+  {
+   "name": "supports",
+   "definition": "Evidence for the target"
+  },
+  {
+   "name": "supported-by",
+   "definition": "Inverse of supports"
+  },
+  {
+   "name": "merged-into",
+   "definition": "Absorbed by the target"
+  },
+  {
+   "name": "merged-from",
+   "definition": "Inverse of merged-into"
+  },
+  {
+   "name": "split-from",
+   "definition": "Carved out of the target"
+  },
+  {
+   "name": "split-into",
+   "definition": "Inverse of split-from"
+  },
+  {
+   "name": "imported",
+   "definition": "Copied from the target in another bundle"
+  },
+  {
+   "name": "exported-to",
+   "definition": "Inverse of imported"
+  },
+  {
+   "name": "authored-by",
+   "definition": "Attribution"
+  },
+  {
+   "name": "author-of",
+   "definition": "Inverse of authored-by"
+  },
+  {
+   "name": "describes",
+   "definition": "Documents the target"
+  },
+  {
+   "name": "described-by",
+   "definition": "Inverse of describes"
+  }
+ ]
+}

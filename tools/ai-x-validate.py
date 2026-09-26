@@ -162,10 +162,12 @@ def _mini_yaml(text: str):
             root[key] = _coerce(rest)
             i += 1
             continue
-        # block value: gather deeper-indented lines
+        # block value: gather deeper-indented lines — or, as PyYAML dumps
+        # them, list items at column 0 directly under the key (`links:\n- rel:`)
         block = []
         j = i + 1
-        while j < n and (not lines[j].strip() or indent(lines[j]) > 0):
+        while j < n and (not lines[j].strip() or indent(lines[j]) > 0
+                         or (lines[j].startswith("- ") and (block or j == i + 1))):
             block.append(lines[j])
             j += 1
         root[key] = _parse_block(block)
@@ -915,8 +917,9 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
         elif not re.fullmatch(r"[a-z0-9][a-z0-9-]*", str(ns)):
             findings.append(Finding("error", MANIFEST_NAME, f"`namespace: {ns}` must be lowercase kebab-case"))
         vocab = man.get("vocabularies")
-        if not isinstance(vocab, dict) or not vocab.get("types") or not vocab.get("rels"):
-            findings.append(Finding("error", MANIFEST_NAME, "missing `vocabularies` with `types` and `rels` (required at Level 3)"))
+        fed_vocab = isinstance(federation, dict) and federation.get("vocab_types") is not None and federation.get("vocab_rels") is not None
+        if (not isinstance(vocab, dict) or not vocab.get("types") or not vocab.get("rels")) and not fed_vocab:
+            findings.append(Finding("error", MANIFEST_NAME, "missing `vocabularies` with `types` and `rels` (required at Level 3; a federation-level declaration also satisfies this, §9.5)"))
         for rel, (fm, _body, _p) in parsed.items():
             for idx, link in enumerate(fm.get("links") or []):
                 if not isinstance(link, dict):

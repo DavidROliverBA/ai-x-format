@@ -153,11 +153,33 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 
 **Gate 4 decision this supports:** v0.4 mentions OCI distribution as a non-normative appendix (artifact type, pinned `created`, key or keyless signing left to the producer) and adds `source: oci` to §9.5. No `digest` field on `manifest.ai-x.yaml`.
 
+## E7: a real federation (added after v0.4)
+
+**2026-09-26.** Two bundles exported from the author's vault with `ai-x-export/0.4`, each a local git repo: `psychology` (102 concepts, all `Concept`) and `ai-concepts` (63). Federated with `examples/` via `experiments/real-federation/federation.ai-x.yaml`, federation-level vocabularies. Validated under both YAML parsers; identical results.
+
+| | psychology | ai-concepts |
+|---|---|---|
+| Links declared | 417 | 172 |
+| Targets not in own bundle (alone) | 109 | 100 |
+| Of those, present in another held bundle | 1 id (`three-ms-of-ai`, linked twice) | 3 ids (`fermi-paradox`, `pc-mindset`, `productivity-dip-pattern`) |
+| Federated: Foam-rule resolutions, each warned and named | **2** | **3** |
+| Federated: still unresolved (targets outside every held bundle) | 107 | 97 |
+| Id collisions across the two | 0 | 0 |
+| Level 3 with federation vocab | PASS | PASS (1 vocab warning: a note with `type: concept`, lower-case) |
+| `--stats` flag | 5 open contradictions, 0 resolved; **99 of 102 confidence labels `high`**, flagged | |
+
+**What it showed that the fixtures could not:**
+- The five real cross-bundle references are all *unqualified*: the exporter writes bare ids because the vault has no notion of namespace. The Foam rule caught every one, named the bundle, and asked the producer to qualify. Rule 5 of `CURATOR.md` in practice.
+- 204 of 209 dangling targets point outside every held bundle (`overconfidence-effect` 34 times, `survivorship-bias` 23): the slices are too narrow, not the format. Federation exposes slice boundaries as a worklist.
+- The confidence flag from E-series fired on real data, exactly as the compounding audit predicted.
+
+**Bug found and fixed (v0.4.1):** the validator's fallback YAML parser dropped any `links:` list whose items sit at column 0, which is PyYAML's default dump style, so a bundle written by `ai-x-export` validated *clean* under plain `python3` and showed 109 warnings under PyYAML. Silent drop in a validator; fixed, and both parsers now agree on every bundle in this repository. Also fixed: Level 3 required per-bundle `vocabularies` even when the federation declared them, contradicting §9.5.
+
 ---
 
 ## Summary and the v0.4 gate
 
-Six experiments, one day of agent time, all reproducible from this directory. What they changed in the spec:
+Six planned experiments plus one on real data, one day of agent time, all reproducible from this directory. What they changed in the spec:
 
 | Experiment | Hypothesis | Outcome | Went into v0.4 as |
 |---|---|---|---|
