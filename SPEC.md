@@ -428,6 +428,24 @@ them; consumers MUST still read the old forms, and validators SHOULD warn:
 | `sources[].uri` | `sources[].resource` |
 | `agent:<id>` / `pipeline:<id>` actors | `<producer>/<version>` / `process:<id>` |
 
+### 7.3a Trust survives transport, not ingestion (v0.4)
+
+Every field in §7.1 and §7.2 is plain text in frontmatter, and experiment E5
+found that anything which moves a bundle as bytes (git, rsync, file sync)
+preserves all of them byte-for-byte. What degrades trust is *ingestion*: a tool
+that parses the file and writes its own representation keeps only the keys it
+models. A tool modelling the whole schema merely normalises formatting; a tool
+modelling seven keys of fifteen silently drops the rest, and the dropped ones
+are exactly the trust fields (`verified`, `provenance`, contradiction state,
+`media`).
+
+Therefore an ingesting consumer MUST do one of two things: round-trip unknown
+keys opaquely (§5.5 already requires this of a *conformant* consumer), or
+document which keys it drops so a producer can judge whether trust survives.
+A count of "keys carried" is not that documentation unless the bundle's key
+count stands beside it. Frontmatter comments never survive a YAML round trip;
+producers MUST NOT put load-bearing information in them.
+
 ### 7.4 Per-claim attribution (inherited from OKF)
 
 `sources` attaches evidence to a whole concept. To attach it to one sentence,
@@ -805,8 +823,14 @@ Theme: federation with evidence. Every addition below was tested in
   and unresolved qualified references, Foam-rule resolutions), per-bundle
   provenance lines.
 
-_(E3–E5 findings to be folded in: index guidance, trust-survival rule wording,
-serving payload appendix.)_
+- §7.3a: trust survives transport, not ingestion; ingesting consumers round-trip
+  unknown keys or document what they drop. E5: 45 of 45 key checks preserved
+  through git, rsync and iCloud; a parse-and-rewrite pass normalised 8 of 15
+  keys and lost comments.
+- §9.5: `ref` and `digest` are strings; a validator understands `source: oci`.
+
+_(E3 and the E4 LLM run still to be folded in: index guidance, serving payload
+appendix.)_
 
 **Unchanged:** every v0.3 bundle is a valid v0.4 bundle.
 

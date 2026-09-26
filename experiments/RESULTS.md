@@ -96,7 +96,23 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 
 ## E5: trust survival through transports
 
-_pending_
+**2026-09-26.** git 2.54, macOS openrsync, iCloud Drive (local daemon), PyYAML. The `examples/` bundle (10 files, 7 concepts, 15 distinct frontmatter keys) round-tripped through each transport and compared key-by-key with a strict rule: "preserved" means byte-identical text for that key. Built by a Sonnet agent; re-run by the author (`e5-transports/run.sh`, exit 0; iCloud scratch folder removed).
+
+| Transport | Preserved | Normalised | Lost | Files byte-identical |
+|---|---|---|---|---|
+| (a) git init → commit → clone | 15 | 0 | 0 | 10/10 |
+| (b) rsync -a | 15 | 0 | 0 | 10/10 |
+| (c) iCloud Drive | 15 | 0 | 0 | 10/10 |
+| (d) Knowledge Catalog via kcmd | skipped: no gcloud; the connector doc's own words quoted instead ("seven frontmatter keys are carried", "cross-links resolve to nothing", "first pull rewrites every frontmatter block") | | | |
+| (e) PyYAML load → `safe_dump` (stand-in for any parse-and-rewrite tool) | 7 | 8 | 0 | 3/10 |
+
+(e) per key: `type`, `id`, `title`, `status`, `stale_after`, `provenance`, `resource` preserved; `description` rewrapped; `tags`/`aliases` flow → block; `generated` timestamps re-emitted in PyYAML's style (same instant, different bytes: `Z` suffix parsed into a `datetime`); `sources`, `verified`, `links`, `media` re-indented and rewrapped. Frontmatter **comments are lost** on any YAML round trip; YAML has no slot for them.
+
+**The rule, now with evidence:** trust survives *transport* (anything that moves bytes: 45 of 45 key checks preserved) and degrades under *ingestion* in proportion to how much of the schema the tool models. A tool that models all of it (PyYAML) only normalises; a tool that models seven of fifteen keys (kcmd, by its own documentation) drops the rest, including `verified`, `provenance`, contradiction state and `media`. "Seven keys carried" reads as coverage until it is held next to a fifteen-key bundle.
+
+**Finding not in the plan:** a single `brctl status` read gave a false "synced" on iCloud immediately after the copy; the run now requires three consecutive clean polls. Recorded as a heuristic, not proof of server-side upload.
+
+**Gate 2 decision this supports:** v0.4 states the rule in §7 and adds one consumer obligation, already implicit in §5.5 and §11.1: an ingesting tool MUST either round-trip unknown keys opaquely or document which keys it drops. The vault's `aix-export` does not need a sidecar for file transports; a sidecar is only for chunking ingestion (Vertex-style), out of scope.
 
 ## E6: integrity (ORAS + Cosign)
 

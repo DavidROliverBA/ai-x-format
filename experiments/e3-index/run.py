@@ -434,6 +434,47 @@ def write_markdown(summary: dict) -> None:
                    f"{e['p_at_5']['b']:.2f} | {e['p_at_5']['c']:.2f} | {tophit} |")
     md.append("")
 
+    md.append("## Notes and judgement calls\n")
+    md.append("- **qmd's hybrid mode is not deterministic run-to-run.** `qmd query` runs an LLM query-expansion "
+               "step (generates `lex:`/`vec:`/`hyde:` sub-queries) and an LLM reranker before returning results; "
+               "re-running this exact script end to end has produced different P@5 numbers between runs (e.g. "
+               "config (a)'s collision top-hit score moved between runs while (c)'s plain-BM25 score for the "
+               "same questions did not). Config (c) is fully deterministic by construction. Treat single-run "
+               "qmd numbers as one sample, not an exact figure — the qualitative pattern (which configuration "
+               "wins on which measure) is what's worth reading, not the third decimal place.")
+    md.append("- **Query phrasing was not tuned.** Every configuration was queried with the literal `question` "
+               "text from questions.yaml, unmodified, once, per the task's instruction not to tune queries to "
+               "improve numbers.")
+    md.append("- **qmd hit → namespace/id mapping.** For (a), the collection name returned in the `qmd://` file "
+               "path *is* the namespace (collections were named exactly by namespace). For (b), the namespace is "
+               "the first path segment under the `all` collection root, because that's how `all-bundles/` was "
+               "laid out. In both cases the actual on-disk file was then read to pull its frontmatter `id:` "
+               "field, rather than trusting the file's basename to equal the id (they happen to match in every "
+               "fixture file, but the mapping doesn't assume that).")
+    md.append("- **No dedup/tie-breaking beyond qmd's own ranking.** The raw top-5 hits from each tool are used "
+               "as returned; if two of the five hits happened to be chunks of the same file (same namespace/id "
+               "twice), that would silently reduce the number of *distinct* documents actually represented in "
+               "the top 5, and P@5 would count the id only once (via set intersection) — this did not appear to "
+               "occur in this run (qmd generally returned 5 distinct files) but the runner does not special-case "
+               "it.")
+    md.append("- **`index.md`/`log.md` have no frontmatter `id:`.** They fall back to their file stem (`index`, "
+               "`log`) for identification purposes. They can never satisfy an `expected` entry (no question's "
+               "answer is one of these bundle-overview files), so when one appears in a top-5 it is pure noise "
+               "against P@5 — which happened for all three configurations at least once, most often for the "
+               "single-collection/BM25-union configs where a bundle-level overview file legitimately shares a "
+               "lot of vocabulary with its own concepts.")
+    md.append("- **Symlinks: config (b)'s union is a real copy, not a symlink tree.** qmd's collection walker "
+               "does not follow symlinks (confirmed empirically — a collection over a symlink farm indexed 0 "
+               "files), so `all-bundles/` under this directory is an actual copy of the three fixture bundles, "
+               "made once at build time. This is read-only scratch content for indexing, not a fixture edit.")
+    md.append("- **Model weights and on-disk size.** qmd's ~2.1GB of GGUF model weights (embedding, reranker, "
+               "query-expansion) are downloaded once into `qmd_home/_shared_models/` and copied into each "
+               "config's own cache rather than re-downloaded — identical models regardless of corpus, so this "
+               "only saves wall-clock on repeat builds. Both the build-time and on-disk-size figures above "
+               "explicitly exclude these shared weights, since including them would make (a) and (b) look "
+               "identical in size (correct) while making the size column meaningless as a measure of index "
+               "growth (the actual point of the measurement).")
+
     (HERE / "e3-results.md").write_text("\n".join(md) + "\n")
 
 

@@ -5,3 +5,10 @@ __pycache__/
 # Build artefacts / exported bundles
 dist/
 *.tar.gz
+
+# experiment scratch: model weights, indexes, materialised copies (E3), keys (E6)
+experiments/e3-index/qmd_home/
+experiments/e3-index/all-bundles/
+experiments/e3-index/bm25_index.json
+experiments/**/*.gguf
+experiments/**/*.sqlite*
