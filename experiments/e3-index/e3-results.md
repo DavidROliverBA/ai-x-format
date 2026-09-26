@@ -18,10 +18,10 @@ P@5 formula: `|top5 ∩ expected| / min(5, |expected|)`, per question, then aver
 
 | Metric | (a) qmd per-bundle collections | (b) qmd single collection | (c) plain BM25 |
 |---|---|---|---|
-| Mean P@5, overall (20 q) | 0.700 | 0.808 | 0.717 |
-| Mean P@5, `kind: cross` (12 q) | 0.653 | 0.764 | 0.667 |
-| Mean P@5, `kind: single` (8 q) | 0.771 | 0.875 | 0.792 |
-| Collision top-hit correct (x/4) | 3/4 | 3/4 | 4/4 |
+| Mean P@5, overall (20 q) | 0.754 | 0.738 | 0.717 |
+| Mean P@5, `kind: cross` (12 q) | 0.715 | 0.688 | 0.667 |
+| Mean P@5, `kind: single` (8 q) | 0.812 | 0.812 | 0.792 |
+| Collision top-hit correct (x/4) | 2/4 | 3/4 | 4/4 |
 
 ## Index build cost
 
@@ -29,8 +29,8 @@ On-disk size excludes qmd's shared model weights (~2.1GB embedding/rerank/query-
 
 | Metric | (a) | (b) | (c) |
 |---|---|---|---|
-| Build time | 2.9s | 2.5s | 0.0s |
-| On-disk index size | 9.9 MB | 9.8 MB | 40.1 KB |
+| Build time | 2.4s | 2.1s | 0.0s |
+| On-disk index size | 9.9 MB | 10.0 MB | 40.1 KB |
 
 ## Per-question results
 
@@ -38,22 +38,22 @@ On-disk size excludes qmd's shared model weights (~2.1GB embedding/rerank/query-
 
 | Q | Kind | P@5 (a) | P@5 (b) | P@5 (c) | Top-hit ok (a/b/c) |
 |---|---|---|---|---|---|
-| q01* | cross | 1.00 | 1.00 | 0.50 | ✗/✗/✓ |
-| q02* | cross | 1.00 | 1.00 | 0.50 | ✓/✓/✓ |
-| q03* | cross | 0.50 | 1.00 | 1.00 | ✓/✓/✓ |
+| q01* | cross | 1.00 | 0.50 | 0.50 | ✗/✗/✓ |
+| q02* | cross | 0.50 | 1.00 | 0.50 | ✓/✓/✓ |
+| q03* | cross | 1.00 | 1.00 | 1.00 | ✗/✓/✓ |
 | q04* | cross | 1.00 | 1.00 | 1.00 | ✓/✓/✓ |
 | q05 | cross | 1.00 | 1.00 | 1.00 |  |
 | q06 | cross | 0.50 | 0.50 | 1.00 |  |
-| q07 | cross | 0.33 | 0.67 | 0.33 |  |
+| q07 | cross | 0.33 | 0.33 | 0.33 |  |
 | q08 | cross | 1.00 | 1.00 | 1.00 |  |
-| q09 | cross | 0.00 | 0.50 | 0.50 |  |
-| q10 | cross | 1.00 | 1.00 | 0.67 |  |
-| q11 | cross | 0.00 | 0.25 | 0.00 |  |
-| q12 | cross | 0.50 | 0.25 | 0.50 |  |
-| q13 | single | 0.50 | 1.00 | 0.50 |  |
+| q09 | cross | 0.50 | 0.50 | 0.50 |  |
+| q10 | cross | 1.00 | 0.67 | 0.67 |  |
+| q11 | cross | 0.25 | 0.25 | 0.00 |  |
+| q12 | cross | 0.50 | 0.50 | 0.50 |  |
+| q13 | single | 0.50 | 0.50 | 0.50 |  |
 | q14 | single | 1.00 | 1.00 | 0.50 |  |
 | q15 | single | 1.00 | 1.00 | 1.00 |  |
-| q16 | single | 0.33 | 0.67 | 1.00 |  |
+| q16 | single | 0.67 | 0.67 | 1.00 |  |
 | q17 | single | 0.33 | 0.33 | 0.33 |  |
 | q18 | single | 1.00 | 1.00 | 1.00 |  |
 | q19 | single | 1.00 | 1.00 | 1.00 |  |

@@ -666,6 +666,29 @@ links:
   later one.
 - This is the answer AIX gives to OKF issue #15.
 
+### 9.7 Indexing a federation (non-normative, v0.4)
+
+Whatever index a consumer builds over several bundles SHOULD carry `namespace`
+and `id` as fields on every indexed document and SHOULD return `namespace/id`
+with every hit. Experiment E3 compared a hybrid, LLM-reranked index using
+collections as namespaces against a plain BM25 index carrying `namespace` as a
+document field, on twenty questions over three bundles with two deliberate id
+collisions. Only the index with the field on the document put the right
+concept first for every collision question, in both runs. A collection label
+identifies a hit after ranking; it does not help the ranker tell two
+same-named concepts apart.
+
+### 9.8 Serving a federation over MCP (non-normative, v0.4)
+
+A server exposing bundles to agents SHOULD use tools (`list`, `search`,
+`get`), not resources or roots, since only some clients consume resources and
+roots are deprecated in the 2026-07-28 MCP specification. Every item in every
+response SHOULD carry `namespace`, `id` and `ref: "namespace/id"`; `get` SHOULD
+return frontmatter verbatim, including `links`, and the provenance `ref` of the
+bundle it came from. Identity has to travel in the payload: nothing in the
+transport namespaces it. Experiment E4's server (`experiments/e4-mcp/`) is a
+minimal reference.
+
 ---
 
 ## 10. Reserved files
@@ -829,8 +852,18 @@ Theme: federation with evidence. Every addition below was tested in
   keys and lost comments.
 - §9.5: `ref` and `digest` are strings; a validator understands `source: oci`.
 
-_(E3 and the E4 LLM run still to be folded in: index guidance, serving payload
-appendix.)_
+- Non-normative index guidance (§9.7): an index over a federation carries
+  `namespace` and `id` as fields on every document and returns `namespace/id`
+  on every hit; a collection label is not a substitute. E3: only the index
+  with `namespace` as a field put the right concept on top for all four
+  collision questions, in both runs; a hybrid LLM-reranked index did not.
+- Non-normative serving guidance (§9.8): a tools-only MCP server returns
+  `namespace`, `id`, `ref: "namespace/id"` on every item, frontmatter verbatim
+  on `get`, and the bundle's provenance `ref`. E4 (deterministic pass; the
+  agent-answering measure is still to be run).
+
+_(E4's agent-answering measure and the Claude Code / VS Code side-tests are the
+only planned measurements not yet run.)_
 
 **Unchanged:** every v0.3 bundle is a valid v0.4 bundle.
 

@@ -67,7 +67,24 @@ Real fixtures under `fixtures/federation.aix.yaml`: all three bundles PASS Level
 
 ## E3: cross-bundle index
 
-_pending_
+**2026-09-26.** qmd 2.8.3 in full hybrid mode (BM25 + embeddinggemma-300M vectors + Qwen3 reranker + qmd's own query-expansion model; ~2.1 GB of weights), versus a 200-line stdlib BM25 (`bm25.py`). Twenty questions, literal question text as the query, no tuning. Built by a Sonnet agent; re-run by the author. **qmd's hybrid mode is not deterministic** (LLM expansion and reranking vary run to run), so two runs are shown; BM25 is stable.
+
+| Measure | (a) qmd, one collection per bundle | (b) qmd, one collection | (c) plain BM25 over the union, `namespace` as a field |
+|---|---|---|---|
+| Mean P@5, all 20 (agent run / author run) | 0.700 / 0.754 | 0.808 / 0.738 | 0.717 / 0.717 |
+| Mean P@5, cross-bundle (12) | 0.653 / 0.715 | 0.764 / 0.688 | 0.667 / 0.667 |
+| Mean P@5, single-bundle (8) | 0.771 / 0.812 | 0.875 / 0.812 | 0.792 / 0.792 |
+| Collision top-hit correct (4) | 3/4 / **2/4** | 3/4 / 3/4 | **4/4 / 4/4** |
+| Build time (excl. model download) | 2.9 s / 2.4 s | 2.5 s / 2.1 s | 0.0 s |
+| Index on disk (excl. 2.1 GB shared weights) | 9.9 MB | 10 MB | 40 KB |
+
+**The plan's hypothesis was wrong, twice.** It expected per-bundle collections (a) to match BM25 on the collision questions and the single collection (b) to fail some. In fact the only configuration that put the right `namespace/id` on top for all four collision questions, in both runs, was the plain BM25 that carries `namespace` as a document field. The hybrid ranker's gains on ordinary questions (a few points of P@5, inside its own run-to-run variance) did not extend to telling two same-named concepts apart.
+
+**Why:** qmd collections *tag* documents in one shared index rather than partitioning it, so a collection is a label on a hit, not a constraint on ranking; and neither qmd configuration gives the ranker the namespace as a signal. BM25 (c) had `namespace` in the document, so the question's own vocabulary ("the payments team's view", "the household") selected the right one.
+
+**Findings not in the plan:** qmd does not follow symlinks for a collection root, so (b) needed a materialised copy of the three bundles; namespace for (b) had to be recovered from the first path segment. Both are consumer-side plumbing the spec cannot fix.
+
+**Gate 2 decision this supports:** AIX v0.4 does not specify an index. It recommends, non-normatively, that any index over a federation carry `namespace` and `id` as fields on every document and return `namespace/id` on every hit; "collection = namespace" is a convenient way to get that in tools that support collections, but it is the field, not the collection, that resolves collisions. A hybrid/LLM-reranked index is not a substitute for that field.
 
 ## E4: serving via MCP tools
 
@@ -135,3 +152,23 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 **Measure 3, the `digest` question: answered against the plan.** `manifest.aix.yaml` must **not** carry its own digest: the manifest is inside the hashed layer, so writing the digest changes the digest. The OCI ecosystem keeps signatures and referrers outside the artifact for the same reason. The digest belongs in the document that *references* the bundle: add `source: oci` to `federation.aix.yaml` with `ref` (registry reference) and `digest`, parallel to `source: git` + `ref: <commit>`.
 
 **Gate 4 decision this supports:** v0.4 mentions OCI distribution as a non-normative appendix (artifact type, pinned `created`, key or keyless signing left to the producer) and adds `source: oci` to §9.5. No `digest` field on `manifest.aix.yaml`.
+
+---
+
+## Summary and the v0.4 gate
+
+Six experiments, one day of agent time, all reproducible from this directory. What they changed in the spec:
+
+| Experiment | Hypothesis | Outcome | Went into v0.4 as |
+|---|---|---|---|
+| E1 | A consumer manifest is needed to resolve cross-bundle refs | **Wrong**: bundles carry their own manifests; scanning resolves everything. The manifest is needed for **provenance** | §9.5: manifest MAY be derived, MUST exist to claim provenance; `ref` per bundle |
+| E2 | Foam's resolve-and-warn rule prevents silent misresolution | Confirmed: 0 silent, 2/2 warned, explicit form clean, no regression | §9.2 explicit `aix://` form and resolution order; §11.1 obligations |
+| E3 | Per-bundle collections beat a single collection on collisions | **Wrong**: only BM25 with `namespace` as a field got 4/4; hybrid ranking did not help | Non-normative index guidance: carry `namespace`/`id` as fields |
+| E4 | A tools-only MCP server carries identity end to end | Confirmed for the payload contract (18/20 deterministic floor, 4/4 collisions); LLM measure not yet run | Serving payload contract (pending the LLM run for a full appendix) |
+| E5 | Trust survives transport, not ingestion | Confirmed with numbers: 45/45 keys through git, rsync, iCloud; 8/15 normalised by parse-and-rewrite; comments lost | §7.3a and a consumer obligation |
+| E6 | Signing catches tampering; digest can live in the bundle manifest | First confirmed; second **wrong** (chicken-and-egg): digest belongs in the federation manifest | §9.5 `source: oci` + `digest`; Appendix C; pinned `created` |
+
+Three of six hypotheses were wrong. That is the argument for running them.
+
+**Open:** the E4 LLM measures (needs an API key); the Claude Code and VS Code manual side-tests (`e4-mcp/MANUAL.md`); the Knowledge Catalog round trip (needs a GCP project); OKF issue bodies #16/#22/#26/#32 unread.
+

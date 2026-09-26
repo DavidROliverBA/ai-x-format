@@ -4,37 +4,37 @@
   "python_version": "3.14.4",
   "build": {
     "a": {
-      "build_seconds": 2.9412141669890843,
-      "index_bytes": 10432408
+      "build_seconds": 2.375185958982911,
+      "index_bytes": 10415904
     },
     "b": {
-      "build_seconds": 2.4796201669960283,
-      "index_bytes": 10304664
+      "build_seconds": 2.063610334007535,
+      "index_bytes": 10444648
     },
     "c": {
-      "build_seconds": 0.0026373330038040876,
+      "build_seconds": 0.0026392090367153287,
       "index_bytes": 41056
     }
   },
   "overall_p_at_5": {
-    "a": 0.7,
-    "b": 0.8083333333333333,
+    "a": 0.7541666666666667,
+    "b": 0.7375,
     "c": 0.7166666666666667
   },
   "by_kind_p_at_5": {
     "cross": {
-      "a": 0.6527777777777778,
-      "b": 0.7638888888888888,
+      "a": 0.7152777777777778,
+      "b": 0.6875,
       "c": 0.6666666666666666
     },
     "single": {
-      "a": 0.7708333333333334,
-      "b": 0.875,
+      "a": 0.8125,
+      "b": 0.8125,
       "c": 0.7916666666666666
     }
   },
   "collision_top_hit_correct": {
-    "a": 3,
+    "a": 2,
     "b": 3,
     "c": 4
   },
@@ -51,17 +51,17 @@
       "hits": {
         "a": [
           "data-eng/index",
-          "household/customers",
-          "example-payments/orders-table",
-          "data-eng/customers",
-          "data-eng/orders-table"
-        ],
-        "b": [
-          "data-eng/index",
           "data-eng/orders-table",
           "example-payments/orders-table",
           "data-eng/customers",
           "example-payments/index"
+        ],
+        "b": [
+          "data-eng/index",
+          "example-payments/orders-table",
+          "example-payments/payment-service-v2",
+          "data-eng/customers",
+          "household/customers"
         ],
         "c": [
           "data-eng/orders-table",
@@ -73,7 +73,7 @@
       },
       "p_at_5": {
         "a": 1.0,
-        "b": 1.0,
+        "b": 0.5,
         "c": 0.5
       },
       "top_hit_correct": {
@@ -93,8 +93,8 @@
       "hits": {
         "a": [
           "example-payments/orders-table",
-          "data-eng/orders-table",
           "example-payments/index",
+          "data-eng/index",
           "example-payments/payment-service",
           "data-eng/orders-events"
         ],
@@ -102,8 +102,8 @@
           "example-payments/orders-table",
           "data-eng/orders-table",
           "example-payments/index",
-          "example-payments/payment-service",
-          "data-eng/orders-events"
+          "data-eng/index",
+          "example-payments/payment-service"
         ],
         "c": [
           "data-eng/orders-table",
@@ -114,7 +114,7 @@
         ]
       },
       "p_at_5": {
-        "a": 1.0,
+        "a": 0.5,
         "b": 1.0,
         "c": 0.5
       },
@@ -134,17 +134,17 @@
       ],
       "hits": {
         "a": [
-          "data-eng/customers",
-          "household/log",
-          "example-payments/orders-table",
-          "data-eng/log",
-          "data-eng/orders-table"
+          "example-payments/log",
+          "data-eng/index",
+          "household/customers",
+          "data-eng/orders-table",
+          "data-eng/customers"
         ],
         "b": [
-          "household/customers",
           "data-eng/customers",
+          "household/log",
+          "household/customers",
           "data-eng/log",
-          "data-eng/orders-table",
           "example-payments/orders-table"
         ],
         "c": [
@@ -156,12 +156,12 @@
         ]
       },
       "p_at_5": {
-        "a": 0.5,
+        "a": 1.0,
         "b": 1.0,
         "c": 1.0
       },
       "top_hit_correct": {
-        "a": true,
+        "a": false,
         "b": true,
         "c": true
       }
@@ -179,8 +179,8 @@
         "a": [
           "data-eng/retention-policy",
           "household/customers",
+          "household/log",
           "data-eng/customers",
-          "data-eng/index",
           "household/index"
         ],
         "b": [
@@ -188,7 +188,7 @@
           "household/customers",
           "household/log",
           "data-eng/customers",
-          "household/index"
+          "data-eng/index"
         ],
         "c": [
           "household/customers",
@@ -219,10 +219,10 @@
       ],
       "hits": {
         "a": [
-          "data-eng/orders-table",
-          "data-eng/index",
           "example-payments/payment-service-v2",
+          "data-eng/orders-table",
           "example-payments/orders-table",
+          "example-payments/index",
           "data-eng/orders-events"
         ],
         "b": [
@@ -246,7 +246,7 @@
         "c": 1.0
       },
       "top_hit_correct": {
-        "a": false,
+        "a": true,
         "b": true,
         "c": false
       }
@@ -312,10 +312,10 @@
         ],
         "b": [
           "example-payments/orders-db-is-not-the-bottleneck",
-          "data-eng/event-replay-is-cheaper-than-backfill",
-          "example-payments/index",
+          "data-eng/index",
+          "data-eng/orders-table",
           "data-eng/retention-policy",
-          "example-payments/sync-capture-limits-throughput"
+          "data-eng/event-replay-is-cheaper-than-backfill"
         ],
         "c": [
           "data-eng/event-replay-is-cheaper-than-backfill",
@@ -327,7 +327,7 @@
       },
       "p_at_5": {
         "a": 0.3333333333333333,
-        "b": 0.6666666666666666,
+        "b": 0.3333333333333333,
         "c": 0.3333333333333333
       },
       "top_hit_correct": {
@@ -347,8 +347,8 @@
       ],
       "hits": {
         "a": [
-          "data-eng/orders-events",
           "example-payments/payment-service-v2",
+          "data-eng/orders-events",
           "data-eng/orders-table",
           "data-eng/customers",
           "household/customers"
@@ -389,18 +389,18 @@
       ],
       "hits": {
         "a": [
-          "example-payments/log",
-          "example-payments/payment-service-v2",
-          "data-eng/index",
-          "data-eng/log",
-          "example-payments/payments-api"
-        ],
-        "b": [
-          "example-payments/sync-capture-limits-throughput",
           "example-payments/jane-doe",
           "example-payments/log",
           "data-eng/log",
-          "example-payments/payments-api"
+          "data-eng/index",
+          "example-payments/index"
+        ],
+        "b": [
+          "data-eng/index",
+          "example-payments/jane-doe",
+          "example-payments/log",
+          "example-payments/payments-api",
+          "household/index"
         ],
         "c": [
           "household/customers",
@@ -411,12 +411,12 @@
         ]
       },
       "p_at_5": {
-        "a": 0.0,
+        "a": 0.5,
         "b": 0.5,
         "c": 0.5
       },
       "top_hit_correct": {
-        "a": false,
+        "a": true,
         "b": false,
         "c": false
       }
@@ -432,18 +432,18 @@
       ],
       "hits": {
         "a": [
-          "household/boiler-service",
           "household/annual-boiler-service-prevents-most-callouts",
-          "household/log",
-          "household/index",
-          "data-eng/retention-policy"
+          "household/boiler-service",
+          "data-eng/customers",
+          "data-eng/retention-policy",
+          "household/index"
         ],
         "b": [
           "household/boiler-service",
           "household/annual-boiler-service-prevents-most-callouts",
-          "household/index",
-          "data-eng/retention-policy",
-          "household/log"
+          "data-eng/customers",
+          "household/log",
+          "household/index"
         ],
         "c": [
           "household/index",
@@ -455,7 +455,7 @@
       },
       "p_at_5": {
         "a": 1.0,
-        "b": 1.0,
+        "b": 0.6666666666666666,
         "c": 0.6666666666666666
       },
       "top_hit_correct": {
@@ -476,18 +476,18 @@
       ],
       "hits": {
         "a": [
-          "data-eng/orders-table",
-          "data-eng/customers",
-          "household/index",
           "example-payments/index",
-          "data-eng/orders-events"
+          "data-eng/customers",
+          "example-payments/jane-doe",
+          "data-eng/orders-events",
+          "household/annual-boiler-service-prevents-most-callouts"
         ],
         "b": [
           "household/index",
           "data-eng/customers",
-          "household/annual-boiler-service-prevents-most-callouts",
           "example-payments/index",
-          "data-eng/orders-events"
+          "data-eng/orders-events",
+          "household/annual-boiler-service-prevents-most-callouts"
         ],
         "c": [
           "data-eng/index",
@@ -498,7 +498,7 @@
         ]
       },
       "p_at_5": {
-        "a": 0.0,
+        "a": 0.25,
         "b": 0.25,
         "c": 0.0
       },
@@ -528,7 +528,7 @@
         ],
         "b": [
           "example-payments/index",
-          "data-eng/log",
+          "data-eng/event-replay-is-cheaper-than-backfill",
           "household/index",
           "data-eng/retention-policy",
           "data-eng/index"
@@ -543,7 +543,7 @@
       },
       "p_at_5": {
         "a": 0.5,
-        "b": 0.25,
+        "b": 0.5,
         "c": 0.5
       },
       "top_hit_correct": {
@@ -562,18 +562,18 @@
       ],
       "hits": {
         "a": [
+          "household/boiler-service",
+          "example-payments/payments-api",
+          "data-eng/orders-events",
+          "example-payments/payment-service-v2",
+          "example-payments/orders-table"
+        ],
+        "b": [
           "example-payments/sync-capture-limits-throughput",
           "example-payments/index",
           "example-payments/payments-api",
           "example-payments/orders-table",
           "example-payments/payment-service"
-        ],
-        "b": [
-          "example-payments/index",
-          "example-payments/payment-service-v2",
-          "example-payments/orders-table",
-          "example-payments/payment-service",
-          "example-payments/payments-api"
         ],
         "c": [
           "example-payments/payment-service",
@@ -585,7 +585,7 @@
       },
       "p_at_5": {
         "a": 0.5,
-        "b": 1.0,
+        "b": 0.5,
         "c": 0.5
       },
       "top_hit_correct": {
@@ -615,7 +615,7 @@
           "example-payments/index",
           "data-eng/event-replay-is-cheaper-than-backfill",
           "example-payments/sync-capture-limits-throughput",
-          "example-payments/log"
+          "data-eng/retention-policy"
         ],
         "c": [
           "example-payments/log",
@@ -648,9 +648,9 @@
         "a": [
           "example-payments/payments-api",
           "example-payments/index",
-          "example-payments/log",
           "example-payments/payment-service",
-          "data-eng/orders-table"
+          "example-payments/log",
+          "household/customers"
         ],
         "b": [
           "example-payments/payments-api",
@@ -690,17 +690,17 @@
       "hits": {
         "a": [
           "example-payments/payment-service-v2",
+          "example-payments/index",
           "example-payments/orders-table",
-          "example-payments/payments-api",
-          "data-eng/orders-events",
-          "example-payments/index"
+          "example-payments/jane-doe",
+          "example-payments/log"
         ],
         "b": [
+          "example-payments/log",
           "example-payments/payment-service-v2",
-          "example-payments/jane-doe",
-          "example-payments/payments-api",
-          "example-payments/index",
-          "example-payments/log"
+          "data-eng/orders-events",
+          "example-payments/orders-table",
+          "example-payments/payment-service"
         ],
         "c": [
           "example-payments/jane-doe",
@@ -711,13 +711,13 @@
         ]
       },
       "p_at_5": {
-        "a": 0.3333333333333333,
+        "a": 0.6666666666666666,
         "b": 0.6666666666666666,
         "c": 1.0
       },
       "top_hit_correct": {
         "a": true,
-        "b": true,
+        "b": false,
         "c": true
       }
     },
@@ -734,16 +734,16 @@
         "a": [
           "data-eng/retention-policy",
           "data-eng/index",
-          "data-eng/event-replay-is-cheaper-than-backfill",
           "household/customers",
-          "data-eng/log"
+          "data-eng/log",
+          "household/index"
         ],
         "b": [
           "data-eng/retention-policy",
           "data-eng/index",
           "data-eng/event-replay-is-cheaper-than-backfill",
-          "household/customers",
-          "data-eng/log"
+          "data-eng/log",
+          "household/customers"
         ],
         "c": [
           "data-eng/retention-policy",
@@ -777,12 +777,12 @@
           "data-eng/retention-policy",
           "data-eng/index",
           "data-eng/event-replay-is-cheaper-than-backfill",
-          "data-eng/log",
-          "household/index"
+          "household/index",
+          "data-eng/log"
         ],
         "b": [
-          "data-eng/retention-policy",
           "data-eng/index",
+          "data-eng/retention-policy",
           "data-eng/event-replay-is-cheaper-than-backfill",
           "household/index",
           "data-eng/log"
@@ -802,7 +802,7 @@
       },
       "top_hit_correct": {
         "a": true,
-        "b": true,
+        "b": false,
         "c": true
       }
     },
@@ -827,7 +827,7 @@
           "household/annual-boiler-service-prevents-most-callouts",
           "household/log",
           "household/index",
-          "household/insurance-renewal"
+          "household/customers"
         ],
         "c": [
           "household/index",
@@ -859,10 +859,10 @@
       "hits": {
         "a": [
           "data-eng/orders-table",
-          "household/insurance-renewal",
           "household/insurance-renewal-quotes-beat-auto-renew",
           "household/log",
-          "household/index"
+          "household/index",
+          "household/insurance-renewal"
         ],
         "b": [
           "household/insurance-renewal-quotes-beat-auto-renew",
