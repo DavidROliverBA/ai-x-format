@@ -1,0 +1,155 @@
+# Question set for AIX federation experiments (plan §1, §2 E3/E4).
+# Schema per entry: id, question, answer (one sentence), expected (list of
+# namespace/id a correct answer must cite), kind (cross|single), collision
+# (true|false — whether correctness depends on picking the right namespace
+# for a colliding id: orders-table or customers).
+#
+# 20 total: 12 cross-bundle, 8 single-bundle; 4 of the 12 cross-bundle
+# questions are collision questions (2 on orders-table, 2 on customers).
+
+questions:
+  # --- Cross-bundle, collision (4) -------------------------------------
+
+  - id: q01
+    question: "Data-eng's orders-table concept links to a concept in another bundle describing the same physical table from a different vantage point. Which concept does it point to, and what's the difference in perspective?"
+    answer: "It links to example-payments/orders-table (rel relates-to) with a note that it is the same table seen from the consumer (payment service) side, whereas data-eng/orders-table is the schema-of-record owned by the data engineering team."
+    expected: [data-eng/orders-table, example-payments/orders-table]
+    kind: cross
+    collision: true
+
+  - id: q02
+    question: "If an agent held only the payments bundle and wanted to know who owns the canonical schema for the orders table payment service depends on, could it answer that from the payments bundle alone? Where is the answer instead?"
+    answer: "No — example-payments/orders-table describes the payment team's copy with no schema-owner field; the canonical schema of record is data-eng/orders-table, owned by the data engineering team."
+    expected: [example-payments/orders-table, data-eng/orders-table]
+    kind: cross
+    collision: true
+
+  - id: q03
+    question: "Two concepts in this federation share the bare id 'customers'. Which one participates in a foreign-key relationship with an orders table, and which one belongs to a home-baking side business?"
+    answer: "data-eng/customers is referenced by an orders table's foreign key; household/customers is the home-baking side business's customer list. The two are unrelated despite the shared id."
+    expected: [data-eng/customers, household/customers]
+    kind: cross
+    collision: true
+
+  - id: q04
+    question: "Data-eng's retention policy links to a concept called 'customers'. Which namespace does that reference belong to, and should it ever be confused with the household bundle's 'customers' concept?"
+    answer: "It resolves to data-eng/customers, an unqualified same-bundle reference; it has no relationship to household/customers, and the two must never be conflated despite the id collision."
+    expected: [data-eng/retention-policy, data-eng/customers, household/customers]
+    kind: cross
+    collision: true
+
+  # --- Cross-bundle, non-collision (8) ----------------------------------
+
+  - id: q05
+    question: "What event stream does payment service v2 consume, and which team owns it?"
+    answer: "It consumes data-eng's orders-events stream, owned by the data engineering team, via a federation-qualified depends-on link."
+    expected: [example-payments/payment-service-v2, data-eng/orders-events]
+    kind: cross
+    collision: false
+
+  - id: q06
+    question: "Which payments-bundle system does data-eng's orders-events stream say depends on it?"
+    answer: "payment-service-v2, via a depended-on-by edge declared on orders-events back to the payments bundle."
+    expected: [data-eng/orders-events, example-payments/payment-service-v2]
+    kind: cross
+    collision: false
+
+  - id: q07
+    question: "Data-eng's claim that event replay is cheaper than backfill supports its orders-events concept. Is there a similarly-shaped cost/throughput claim in the payments bundle, and what does it support there?"
+    answer: "Yes — example-payments/sync-capture-limits-throughput makes a similarly-shaped argument and supports example-payments/payment-service-v2; the two claims sit in different bundles with no formal link between them."
+    expected: [data-eng/event-replay-is-cheaper-than-backfill, example-payments/sync-capture-limits-throughput, example-payments/payment-service-v2]
+    kind: cross
+    collision: false
+
+  - id: q08
+    question: "Payment service v2 depends on data-eng's orders-events stream. What same-bundle data-eng concept does that stream say it's derived from?"
+    answer: "data-eng/orders-table — orders-events is derived-from it, since events are emitted on writes to that table."
+    expected: [example-payments/payment-service-v2, data-eng/orders-events, data-eng/orders-table]
+    kind: cross
+    collision: false
+
+  - id: q09
+    question: "Does data-eng's bundle contain a Person-type concept analogous to payments' jane-doe, or does it only reference people indirectly?"
+    answer: "Data-eng has no Person-type concept at all; the only Person concept in the federation is example-payments/jane-doe. Data-eng's orders-events is generated and verified by the actor string human:sam-patel, not a Person concept file."
+    expected: [example-payments/jane-doe, data-eng/orders-events]
+    kind: cross
+    collision: false
+
+  - id: q10
+    question: "Household's boiler-service runbook is supported by a claim about annual servicing. Is there an equivalent formal Policy-type concept for household maintenance, the way data-eng has a retention-policy for its data?"
+    answer: "No — household models maintenance as a Runbook (boiler-service) backed by a Claim, not as a Policy; data-eng's retention-policy is the only Policy-typed concept across the three bundles."
+    expected: [household/boiler-service, household/annual-boiler-service-prevents-most-callouts, data-eng/retention-policy]
+    kind: cross
+    collision: false
+
+  - id: q11
+    question: "Household's two claims are both authored and verified (or at least generated) by a single human actor, household-admin. Is that also true of the two disputing claims in the payments bundle?"
+    answer: "No — example-payments/sync-capture-limits-throughput is human-generated and human-verified, but example-payments/orders-db-is-not-the-bottleneck is generated by curator/1.0 (a tool) and carries no verified field, so it sits in the unverified trust tier, unlike either household claim."
+    expected: [household/annual-boiler-service-prevents-most-callouts, household/insurance-renewal-quotes-beat-auto-renew, example-payments/sync-capture-limits-throughput, example-payments/orders-db-is-not-the-bottleneck]
+    kind: cross
+    collision: false
+
+  - id: q12
+    question: "Data-eng records an open contradiction against its own retention-policy. Does the payments bundle's open contradiction have the same shape — a Claim against a Policy?"
+    answer: "No — payments' open contradiction is between two Claim concepts (sync-capture-limits-throughput and orders-db-is-not-the-bottleneck); data-eng's open contradiction is a Claim (event-replay-is-cheaper-than-backfill) against a Policy (retention-policy), a different shape."
+    expected: [data-eng/event-replay-is-cheaper-than-backfill, data-eng/retention-policy, example-payments/sync-capture-limits-throughput, example-payments/orders-db-is-not-the-bottleneck]
+    kind: cross
+    collision: false
+
+  # --- Single-bundle (8) --------------------------------------------------
+
+  - id: q13
+    question: "What replaced the payment service, and why was it introduced?"
+    answer: "Payment service v2 replaced it, introducing an event-driven capture flow in place of the original synchronous one."
+    expected: [example-payments/payment-service, example-payments/payment-service-v2]
+    kind: single
+    collision: false
+
+  - id: q14
+    question: "What does the claim 'orders-db-is-not-the-bottleneck' contradict, and is the contradiction resolved?"
+    answer: "It contradicts 'synchronous capture limits payment throughput'; the contradiction is open and unresolved, awaiting a human ruling."
+    expected: [example-payments/orders-db-is-not-the-bottleneck, example-payments/sync-capture-limits-throughput]
+    kind: single
+    collision: false
+
+  - id: q15
+    question: "What happened to the Payments API system?"
+    answer: "It was merged into the payment service and is now a deprecated tombstone with a merged-into link."
+    expected: [example-payments/payments-api, example-payments/payment-service]
+    kind: single
+    collision: false
+
+  - id: q16
+    question: "Who authored the payment service and its v2 replacement?"
+    answer: "Jane Doe authored both, via author-of links from her Person concept to each system."
+    expected: [example-payments/jane-doe, example-payments/payment-service, example-payments/payment-service-v2]
+    kind: single
+    collision: false
+
+  - id: q17
+    question: "What does data-eng's retention policy govern, and which concepts does it link to?"
+    answer: "It governs retention and deletion of order and customer data, linking (relates-to) to both the orders-table and customers concepts within the same bundle."
+    expected: [data-eng/retention-policy, data-eng/orders-table, data-eng/customers]
+    kind: single
+    collision: false
+
+  - id: q18
+    question: "What claim does data-eng make about disaster-recovery cost, and what assumption does it call into question?"
+    answer: "Event replay is cheaper than a batch backfill; it contradicts the retention policy's assumption that batch backfill is the default disaster-recovery method for order data."
+    expected: [data-eng/event-replay-is-cheaper-than-backfill, data-eng/retention-policy]
+    kind: single
+    collision: false
+
+  - id: q19
+    question: "What supports the boiler-service runbook?"
+    answer: "The claim that an annual boiler service prevents most emergency callouts, via a supports edge from the claim to the runbook."
+    expected: [household/boiler-service, household/annual-boiler-service-prevents-most-callouts]
+    kind: single
+    collision: false
+
+  - id: q20
+    question: "What does the household's own price record say about accepting a home insurance auto-renewal?"
+    answer: "Comparison quotes gathered before the renewal date have beaten the auto-renew price every year on record, which is why the insurance-renewal runbook always compares quotes rather than letting the policy auto-renew."
+    expected: [household/insurance-renewal-quotes-beat-auto-renew, household/insurance-renewal]
+    kind: single
+    collision: false

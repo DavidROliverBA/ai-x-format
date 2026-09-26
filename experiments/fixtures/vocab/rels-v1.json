@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "values": [
+    {
+      "name": "relates-to",
+      "definition": "Generic association between two concepts (symmetric; its own inverse)."
+    },
+    {
+      "name": "part-of",
+      "definition": "The containing concept is a component or member of the target (composition/containment)."
+    },
+    {
+      "name": "has-part",
+      "definition": "Inverse of part-of: the containing concept contains the target as a component or member."
+    },
+    {
+      "name": "depends-on",
+      "definition": "The containing concept requires the target to function."
+    },
+    {
+      "name": "depended-on-by",
+      "definition": "Inverse of depends-on: the target requires the containing concept to function."
+    },
+    {
+      "name": "references",
+      "definition": "The containing concept cites or points at the target."
+    },
+    {
+      "name": "referenced-by",
+      "definition": "Inverse of references: the target cites or points at the containing concept."
+    },
+    {
+      "name": "derived-from",
+      "definition": "The containing concept was produced from the target."
+    },
+    {
+      "name": "source-of",
+      "definition": "Inverse of derived-from: the containing concept was used to produce the target."
+    },
+    {
+      "name": "supersedes",
+      "definition": "The containing concept replaces the target; the target is deprecated."
+    },
+    {
+      "name": "superseded-by",
+      "definition": "Inverse of supersedes: the containing concept has been replaced by the target."
+    },
+    {
+      "name": "contradicts",
+      "definition": "Known conflict with the target (symmetric; its own inverse). Carries an open/resolved lifecycle (SPEC §6.5)."
+    },
+    {
+      "name": "supports",
+      "definition": "The containing concept is evidence for the target. The counterpart to contradicts."
+    },
+    {
+      "name": "supported-by",
+      "definition": "Inverse of supports: the target is evidence for the containing concept."
+    },
+    {
+      "name": "merged-into",
+      "definition": "The containing concept was absorbed by the target and is now a tombstone."
+    },
+    {
+      "name": "merged-from",
+      "definition": "Inverse of merged-into: the containing concept absorbed the target, which is now a tombstone."
+    },
+    {
+      "name": "split-from",
+      "definition": "The containing concept was carved out of the target."
+    },
+    {
+      "name": "split-into",
+      "definition": "Inverse of split-from: the target was carved out of the containing concept."
+    },
+    {
+      "name": "authored-by",
+      "definition": "Attribution: the containing concept was authored by the target (typically a Person)."
+    },
+    {
+      "name": "author-of",
+      "definition": "Inverse of authored-by: the containing concept (typically a Person) authored the target."
+    },
+    {
+      "name": "describes",
+      "definition": "The containing concept explains or documents the target."
+    },
+    {
+      "name": "described-by",
+      "definition": "Inverse of describes: the containing concept is explained or documented by the target."
+    },
+    {
+      "name": "depicts",
+      "definition": "Registered extension rel: a visual asset shows the target."
+    },
+    {
+      "name": "depicted-in",
+      "definition": "Inverse of depicts: the containing concept is shown in the target visual asset."
+    },
+    {
+      "name": "remediates",
+      "definition": "Registered extension rel: a runbook or fix addresses a problem in the target."
+    },
+    {
+      "name": "remediated-by",
+      "definition": "Inverse of remediates: the containing concept's problem is addressed by the target runbook or fix."
+    },
+    {
+      "name": "discusses",
+      "definition": "Registered extension rel: a recording or thread covers the target."
+    },
+    {
+      "name": "discussed-in",
+      "definition": "Inverse of discusses: the containing concept is covered in the target recording or thread."
+    }
+  ]
+}

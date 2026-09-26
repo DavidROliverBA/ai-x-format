@@ -1,0 +1,12 @@
+aix: "0.3"
+name: data-eng
+namespace: data-eng
+description: Fixture bundle for federation experiments — the data engineering team's view of the orders and customers data, the event stream that payment service v2 consumes, and a retention policy. Deliberately shares two ids (orders-table, customers) with the payments and household bundles to test id-collision handling.
+producer: hand-authored
+generated: 2026-09-26T09:00:00Z
+conformance: 3
+vocabularies:
+  types: ../vocab/types-v1.json
+  rels: ../vocab/rels-v1.json
+counts:
+  concepts: 5

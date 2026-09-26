@@ -1,0 +1,17 @@
+aix: "0.4"
+federation: example-federation
+vocabularies:
+  types: ./vocab/types-v1.json
+  rels:  ./vocab/rels-v1.json
+bundles:
+  - namespace: example-payments
+    source: git
+    repo: https://github.com/DavidROliverBA/aix-format
+    ref: 1408535
+    subdir: examples
+  - namespace: data-eng
+    source: path
+    path: ./data-eng
+  - namespace: household
+    source: path
+    path: ./household

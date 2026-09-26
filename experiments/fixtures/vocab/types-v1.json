@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "values": [
+    {
+      "name": "Concept",
+      "definition": "A general unit of knowledge that doesn't fit a more specific type — an idea, topic, or thing described in prose."
+    },
+    {
+      "name": "System",
+      "definition": "A software service, platform, or application that performs a function."
+    },
+    {
+      "name": "DataAsset",
+      "definition": "A dataset, table, stream, or other data resource with an owner and a schema."
+    },
+    {
+      "name": "Person",
+      "definition": "A human individual referenced as an author, owner, or subject."
+    },
+    {
+      "name": "Claim",
+      "definition": "A falsifiable, single-sentence assertion that can be supported, contradicted, or superseded."
+    },
+    {
+      "name": "Policy",
+      "definition": "A governance rule or standard that constrains how a system or data asset may be used."
+    },
+    {
+      "name": "Runbook",
+      "definition": "A set of steps for performing a recurring operational or maintenance task."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+aix: "0.4"
+name: bundle-c
+namespace: c
+description: E2 fixture bundle C — the consumer under test. Its one concept exercises every reference form the --federation resolver has to handle.
+producer: e2-resolution-fixture/1.0
+generated: 2026-09-26T00:00:00Z
+conformance: 2
+counts:
+  concepts: 2
