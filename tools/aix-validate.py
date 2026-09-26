@@ -295,6 +295,9 @@ def actors_of(fm: dict):
             continue
         if ln.get("by"):
             yield f"links[{i}].by", ln["by"]
+        for j, v in enumerate(as_list(ln.get("verified"))):
+            if isinstance(v, dict) and v.get("by"):
+                yield f"links[{i}].verified[{j}].by", v["by"]
         res = ln.get("resolved")
         if isinstance(res, dict) and res.get("by"):
             yield f"links[{i}].resolved.by", res["by"]
@@ -341,6 +344,7 @@ def collect_stats(bundle: Path, today: date) -> dict:
     tiers = Counter(trust_tier(fm) for fm, _ in concepts.values())
     conf = Counter()
     past_stale = no_stale = with_sources = cited = 0
+    withheld_total = verified_edges = 0
     orphan_footnotes = 0
     rels = Counter()
     contradictions: dict = {}
@@ -357,6 +361,10 @@ def collect_stats(bundle: Path, today: date) -> dict:
             past_stale += 1
         src_ids = {str(s["id"]) for s in as_list(fm.get("sources"))
                    if isinstance(s, dict) and s.get("id")}
+        withheld_total += sum(int(s["withheld"]) for s in as_list(fm.get("sources"))
+                              if isinstance(s, dict) and isinstance(s.get("withheld"), int))
+        verified_edges += sum(1 for ln in as_list(fm.get("links"))
+                              if isinstance(ln, dict) and as_list(ln.get("verified")))
         refs = set(FOOTNOTE_REF_RE.findall(body))
         if as_list(fm.get("sources")):
             with_sources += 1
@@ -419,6 +427,8 @@ def collect_stats(bundle: Path, today: date) -> dict:
                                "citing_per_claim": cited,
                                "footnotes_matching_no_source": orphan_footnotes},
         "confidence": dict(conf),
+        "withheld_sources": withheld_total,
+        "verified_edges": verified_edges,
         "log": {"entries": known,
                 "update_to_creation": (round(updated / created, 2) if created else None)},
         "flags": flags,
@@ -445,6 +455,8 @@ def print_stats(s: dict):
           + (f"; {pc['footnotes_matching_no_source']} footnote(s) match no source id"
              if pc["footnotes_matching_no_source"] else ""))
     print(f"  confidence:        {fmt(s['confidence'])}")
+    if s.get("withheld_sources") or s.get("verified_edges"):
+        print(f"  redaction/edges:   {s.get('withheld_sources', 0)} source(s) withheld, {s.get('verified_edges', 0)} edge(s) with verified events")
     lg = s["log"]
     ratio = lg["update_to_creation"]
     print(f"  log.md:            {fmt(lg['entries'])}")
@@ -742,6 +754,12 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                 hint = " — use `stable`" if str(st) == "active" else ""
                 findings.append(Finding("warning", rel, f"`status: {st}` is not an OKF v0.2 value (draft | stable | deprecated){hint}"))
             for idx, src in enumerate(as_list(fm.get("sources"))):
+                if isinstance(src, dict) and "withheld" in src:
+                    # SPEC §7.5 redaction marker: a count, never a resource
+                    w = src.get("withheld")
+                    if not isinstance(w, int) or w < 1 or len(src) != 1:
+                        findings.append(Finding("error", rel, f"sources[{idx}] `withheld` must be the sole key with a positive integer count (§7.5)"))
+                    continue
                 if isinstance(src, dict) and not src.get("resource"):
                     hint = " — rename `uri` to `resource`" if src.get("uri") else ""
                     findings.append(Finding("warning", rel, f"sources[{idx}] has no `resource` (REQUIRED by OKF v0.2){hint}"))
@@ -795,6 +813,9 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                         findings.append(Finding("warning", rel, f"{where} `state` is only meaningful on `contradicts` (ignored on `{relv}`)"))
                     elif str(state) == "resolved" and res is None:
                         findings.append(Finding("warning", rel, f"{where} is `resolved` with no `resolved` map — who ruled, and when?"))
+                ev = link.get("verified")
+                if ev is not None and not all(isinstance(x, dict) and x.get("by") for x in as_list(ev)):
+                    findings.append(Finding("error", rel, f"{where} `verified` must be a list of maps with `by` (§6.1)"))
                 if res is not None:
                     if not isinstance(res, dict) or not res.get("by"):
                         findings.append(Finding("error", rel, f"{where} `resolved` must be a mapping with `by`"))

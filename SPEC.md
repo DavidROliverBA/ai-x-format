@@ -242,6 +242,7 @@ map:
 | `at` | ISO 8601 date/datetime | MAY | When the edge was asserted. *(v0.3)* |
 | `state` | `open` \| `resolved` | MAY | Lifecycle of a `contradicts` edge (§6.5). Meaningless on other rels; consumers MUST ignore it there. *(v0.3)* |
 | `resolved` | map | MAY | How a contradiction was settled: `by`, `at`, and optional `outcome` (§6.5). *(v0.3)* |
+| `verified` | list of maps | MAY | Verification events for **this edge**, same shape and actor convention as the concept-level field (§7.1). An edge's trust tier is derived from it exactly as a concept's is; an edge with no `verified` is unverified even when its concept is human-reviewed. *(v0.4)* |
 
 A link asserts a **directed** edge from the containing concept to `to`.
 
@@ -383,7 +384,7 @@ map shrinks to carry only what OKF still lacks.
 
 | Field | Meaning |
 |-------|---------|
-| `sources` | Where the content came from, as a list of maps. `resource` is REQUIRED per entry; `id`, `title` and OKF's credibility signals (`author`, `usage_count`, `last_modified`) are optional. |
+| `sources` | Where the content came from, as a list of maps. `resource` is REQUIRED per entry; `id`, `title` and OKF's credibility signals (`author`, `usage_count`, `last_modified`) are optional. One entry MAY instead be a `withheld` marker (§7.6). |
 | `generated` | Which actor produced the content and when (`by`, `at`). Actors use OKF's convention: `<producer>/<version>` for agents and tools, `human:<id>` for a person, `process:<id>` for an automated process. |
 | `verified` | A list of verification events (`by`, `at`); a single bare map is read as a one-element list. The actor yields OKF's three trust tiers: unverified (absent), machine-confirmed (non-`human:` actors only), human-reviewed (any `human:` actor). |
 | `status` | Lifecycle state: `draft`, `stable` (the default when absent) or `deprecated`. |
@@ -463,7 +464,31 @@ is a paraphrase, and paraphrase compounds error as readily as insight; a claim
 that still points at its source can be re-checked, and a page of such claims can
 be rebuilt from evidence rather than from its own previous draft.
 
-### 7.5 Claims (recommended type, new in v0.3)
+### 7.5 Withheld sources (new in v0.4)
+
+A bundle served across a trust boundary may have to remove `sources` entries
+it cannot disclose. A silently shorter list looks complete, which
+misrepresents provenance; disclosing everything leaks what was meant to stay
+private. So a serving party that removes entries MUST replace them with one
+marker entry naming only the count:
+
+```yaml
+sources:
+  - id: q2-review
+    resource: https://internal.example.com/reviews/2026-q2
+    title: Q2 capacity review
+  - withheld: 2
+```
+
+- A `withheld` entry has no `resource` and MUST NOT be resolved or cited.
+- Consumers deriving trust SHOULD surface the count; a concept with withheld
+  sources is not less verified, but its provenance is declared incomplete.
+- This closes only the field; a source named in prose has already been
+  disclosed. Proposed in OKF issue #32; AI-X adopts it, which narrows §12: the
+  format now has one word for redaction, and the policy of *what* to withhold
+  stays the producer's.
+
+### 7.6 Claims (recommended type, new in v0.3)
 
 A concept titled as a topic ("Voice latency") can only grow longer. A concept
 titled as a falsifiable statement ("Sub-200 ms voice replies need on-device
@@ -733,6 +758,17 @@ prompted the change. The ratio of `Update` to `Creation` entries over a period
 is the simplest available measure of whether a bundle is compounding or merely
 accumulating. Entries with an unknown leading word are valid and uncounted.
 
+**Merge ownership (v0.4).** When a bundle is produced in parts, or regenerated
+by a tool, the reserved files at any directory shared by more than one part
+(the bundle root above all) belong to the *merging* producer, not to any part.
+`log.md` is **read-then-add, never regenerate**: a merge MUST carry forward
+every existing entry and append its own. `manifest.ai-x.yaml` and a root
+`index.md` MUST preserve any existing version keys and hand-written text. A
+merge that regenerates the root log silently discards every `Resolution`,
+`Merge` and `Deprecation` it recorded, and a conformance check of the file's
+*shape* will not notice. This is the rule the OKF community converged on in
+issue #26; AI-X needs it more, because its log vocabulary carries decisions.
+
 ### 10.3 `manifest.aix.yaml` (AIX, optional)
 
 A single YAML file at the **bundle root** describing the bundle as a whole. It
@@ -809,7 +845,10 @@ changes — is **policy**, and lives outside this spec. A non-normative referenc
 policy, written to be pasted into an agent's instructions, ships alongside it as
 [`CURATOR.md`](./CURATOR.md). Nothing in it is required for conformance.
 
-Likewise for sharing. AIX defines a *format*, not a policy. Content sensitivity, redaction, and
+Likewise for sharing, with one exception: §7.6 gives the format a single word,
+`withheld`, for the fact that something was redacted, because a list that is
+silently shorter misleads every consumer. What to withhold remains policy.
+AIX defines a *format*, not a policy. Content sensitivity, redaction, and
 outbound-sharing rules are the **producer's** responsibility and out of scope
 for this spec. Producers exporting into AIX for external exchange SHOULD apply
 their own sanitisation before publishing a bundle — and SHOULD remember that
@@ -861,6 +900,12 @@ Theme: federation with evidence. Every addition below was tested in
   on every hit; a collection label is not a substitute. E3: only the index
   with `namespace` as a field put the right concept on top for all four
   collision questions, in both runs; a hybrid LLM-reranked index did not.
+- `verified` on link objects: trust tiers for edges, derived exactly as for
+  concepts (§6.1). Answers the "sharper half" of OKF issue #16.
+- Merge ownership of reserved files; `log.md` is read-then-add, never
+  regenerated (§10.2). Answers OKF issue #26.
+- `withheld: N` marker in `sources` for redacted entries (§7.5); §12 narrowed
+  accordingly. Answers OKF issue #32.
 - Non-normative serving guidance (§9.8): a tools-only MCP server returns
   `namespace`, `id`, `ref: "namespace/id"` on every item, frontmatter verbatim
   on `get`, and the bundle's provenance `ref`. E4 (deterministic pass only; the
