@@ -562,8 +562,27 @@ def load_federation(fed_path: Path):
                 findings.append(Finding("error", fed_label, f"{where} source: path missing `path`"))
             else:
                 root = (fed_dir / rel_path).resolve()
+        elif source == "oci":
+            # SPEC §9.5 / Appendix C: an OCI-distributed bundle. `digest` is the
+            # provenance field. Pulling is out of scope; if the producer has
+            # unpacked it locally, `path` says where, otherwise the bundle is
+            # held only by reference and its ids are unknown to this run.
+            if not entry.get("ref"):
+                findings.append(Finding("error", fed_label, f"{where} source: oci missing `ref`"))
+            digest = str(entry.get("digest") or "")
+            if not digest:
+                findings.append(Finding("warning", fed_label, f"{where} source: oci has no `digest` — no provenance (§9.5)"))
+            elif not HASH_RE.match(digest):
+                findings.append(Finding("warning", fed_label, f"{where} `digest: {digest}` is not `<algo>:<hex>` form"))
+            ref = digest or ref
+            if entry.get("path"):
+                root = (fed_dir / str(entry["path"])).resolve()
+            else:
+                bundle_reports.append({"namespace": ns, "root": "(not held locally — OCI reference only)",
+                                       "ref": ref, "source": source})
+                continue
         else:
-            findings.append(Finding("error", fed_label, f"{where} unknown `source: {source}` (expected `path` or `git`)"))
+            findings.append(Finding("error", fed_label, f"{where} unknown `source: {source}` (expected `path`, `git` or `oci`)"))
 
         if root is None:
             continue
@@ -960,7 +979,8 @@ def main():
         print(f"  federation: {len(federation['namespaces'])} bundle(s) held ({', '.join(federation['namespaces']) or 'none'})")
         for b in bundle_reports:
             ref_part = f" @ {b['ref']}" if b.get("ref") else ""
-            git_note = " (git fetch out of scope — resolved as a local path)" if b.get("source") == "git" else ""
+            git_note = {"git": " (git fetch out of scope — resolved as a local path)",
+                        "oci": " (OCI pull out of scope)"}.get(b.get("source"), "")
             print(f"    - {b['namespace']}: {b['root']}{ref_part}{git_note}")
     if not findings:
         print("  ✓ no findings")

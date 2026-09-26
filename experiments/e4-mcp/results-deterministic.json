@@ -1,0 +1,322 @@
+{
+  "mode": "deterministic",
+  "versions": {
+    "date": "2026-09-26",
+    "python": "3.11.15",
+    "mcp": "2.2.0",
+    "pyyaml": "6.0.3",
+    "platform": "macOS-27.0-arm64-arm-64bit"
+  },
+  "server": {
+    "script": "/Users/davidoliver/github/aix-format/experiments/e4-mcp/server.py",
+    "federation": "/Users/davidoliver/github/aix-format/experiments/fixtures/federation.aix.yaml"
+  },
+  "note": "Deterministic mode is a retrieval/payload-contract floor, not an answer-quality measure \u2014 it never reads the answer text.",
+  "questions": [
+    {
+      "id": "q01",
+      "kind": "cross",
+      "collision": true,
+      "tool_calls": 2,
+      "top_ref": "data-eng/orders-table",
+      "top_score": 25.2517,
+      "get_ok": true,
+      "expected": [
+        "data-eng/orders-table",
+        "example-payments/orders-table"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q02",
+      "kind": "cross",
+      "collision": true,
+      "tool_calls": 2,
+      "top_ref": "data-eng/orders-table",
+      "top_score": 19.8013,
+      "get_ok": true,
+      "expected": [
+        "example-payments/orders-table",
+        "data-eng/orders-table"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q03",
+      "kind": "cross",
+      "collision": true,
+      "tool_calls": 2,
+      "top_ref": "data-eng/customers",
+      "top_score": 27.8836,
+      "get_ok": true,
+      "expected": [
+        "data-eng/customers",
+        "household/customers"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q04",
+      "kind": "cross",
+      "collision": true,
+      "tool_calls": 2,
+      "top_ref": "household/customers",
+      "top_score": 27.8339,
+      "get_ok": true,
+      "expected": [
+        "data-eng/retention-policy",
+        "data-eng/customers",
+        "household/customers"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q05",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "example-payments/payment-service-v2",
+      "top_score": 11.1439,
+      "get_ok": true,
+      "expected": [
+        "example-payments/payment-service-v2",
+        "data-eng/orders-events"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q06",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/orders-events",
+      "top_score": 15.049,
+      "get_ok": true,
+      "expected": [
+        "data-eng/orders-events",
+        "example-payments/payment-service-v2"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q07",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/event-replay-is-cheaper-than-backfill",
+      "top_score": 23.579,
+      "get_ok": true,
+      "expected": [
+        "data-eng/event-replay-is-cheaper-than-backfill",
+        "example-payments/sync-capture-limits-throughput",
+        "example-payments/payment-service-v2"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q08",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/orders-events",
+      "top_score": 27.8684,
+      "get_ok": true,
+      "expected": [
+        "example-payments/payment-service-v2",
+        "data-eng/orders-events",
+        "data-eng/orders-table"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q09",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "household/customers",
+      "top_score": 14.7052,
+      "get_ok": true,
+      "expected": [
+        "example-payments/jane-doe",
+        "data-eng/orders-events"
+      ],
+      "cites_correct": false
+    },
+    {
+      "id": "q10",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "household/boiler-service",
+      "top_score": 21.7062,
+      "get_ok": true,
+      "expected": [
+        "household/boiler-service",
+        "household/annual-boiler-service-prevents-most-callouts",
+        "data-eng/retention-policy"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q11",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/orders-table",
+      "top_score": 16.6573,
+      "get_ok": true,
+      "expected": [
+        "household/annual-boiler-service-prevents-most-callouts",
+        "household/insurance-renewal-quotes-beat-auto-renew",
+        "example-payments/sync-capture-limits-throughput",
+        "example-payments/orders-db-is-not-the-bottleneck"
+      ],
+      "cites_correct": false
+    },
+    {
+      "id": "q12",
+      "kind": "cross",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/retention-policy",
+      "top_score": 22.1472,
+      "get_ok": true,
+      "expected": [
+        "data-eng/event-replay-is-cheaper-than-backfill",
+        "data-eng/retention-policy",
+        "example-payments/sync-capture-limits-throughput",
+        "example-payments/orders-db-is-not-the-bottleneck"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q13",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "example-payments/payment-service",
+      "top_score": 7.7208,
+      "get_ok": true,
+      "expected": [
+        "example-payments/payment-service",
+        "example-payments/payment-service-v2"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q14",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "example-payments/orders-db-is-not-the-bottleneck",
+      "top_score": 8.5692,
+      "get_ok": true,
+      "expected": [
+        "example-payments/orders-db-is-not-the-bottleneck",
+        "example-payments/sync-capture-limits-throughput"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q15",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "example-payments/payments-api",
+      "top_score": 5.56,
+      "get_ok": true,
+      "expected": [
+        "example-payments/payments-api",
+        "example-payments/payment-service"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q16",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "example-payments/jane-doe",
+      "top_score": 12.0139,
+      "get_ok": true,
+      "expected": [
+        "example-payments/jane-doe",
+        "example-payments/payment-service",
+        "example-payments/payment-service-v2"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q17",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/retention-policy",
+      "top_score": 10.1494,
+      "get_ok": true,
+      "expected": [
+        "data-eng/retention-policy",
+        "data-eng/orders-table",
+        "data-eng/customers"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q18",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "data-eng/event-replay-is-cheaper-than-backfill",
+      "top_score": 14.6417,
+      "get_ok": true,
+      "expected": [
+        "data-eng/event-replay-is-cheaper-than-backfill",
+        "data-eng/retention-policy"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q19",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "household/boiler-service",
+      "top_score": 5.8424,
+      "get_ok": true,
+      "expected": [
+        "household/boiler-service",
+        "household/annual-boiler-service-prevents-most-callouts"
+      ],
+      "cites_correct": true
+    },
+    {
+      "id": "q20",
+      "kind": "single",
+      "collision": false,
+      "tool_calls": 2,
+      "top_ref": "household/insurance-renewal-quotes-beat-auto-renew",
+      "top_score": 22.5761,
+      "get_ok": true,
+      "expected": [
+        "household/insurance-renewal-quotes-beat-auto-renew",
+        "household/insurance-renewal"
+      ],
+      "cites_correct": true
+    }
+  ],
+  "totals": {
+    "total": 20,
+    "cites_correct": 18,
+    "cross_bundle_total": 12,
+    "cross_bundle_cites_correct": 10,
+    "collision_total": 4,
+    "collision_cites_correct": 4,
+    "single_bundle_total": 8,
+    "single_bundle_cites_correct": 8,
+    "avg_tool_calls": 2.0,
+    "targets": {
+      "answer_correct_target": "18/20",
+      "cross_bundle_cites_target": "12/12"
+    }
+  }
+}

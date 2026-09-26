@@ -7,7 +7,7 @@ bundles:
   - namespace: example-payments
     source: git
     repo: https://github.com/DavidROliverBA/aix-format
-    ref: 1408535
+    ref: "1408535"
     subdir: examples
   - namespace: data-eng
     source: path

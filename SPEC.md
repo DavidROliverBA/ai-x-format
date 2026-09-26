@@ -611,6 +611,8 @@ bundles:
   repository that holds it; `path` (path sources) is relative to the federation
   manifest. Both point at the directory containing `manifest.aix.yaml`.
 - Two entries MUST NOT share a `namespace`.
+- `ref` and `digest` are strings. Quote a short git SHA that happens to be all
+  digits (`ref: "1408535"`), or a YAML parser will read it as a number.
 
 **What the manifest is for.** Experiment E1 showed that a consumer can resolve
 every cross-bundle reference *without* a federation manifest: each bundle's own
