@@ -5,7 +5,7 @@
 > of a folder of markdown: **stable identity, typed relationships, provenance,
 > media identity, federation, and change semantics**.
 
-AIX is a **strict superset of Google Cloud's [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf) v0.2**.
+AIX is a **strict superset of Google Cloud's [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/open-knowledge-format) v0.2**.
 Every AIX bundle is also a valid OKF bundle: OKF-only agents read it today,
 AIX-aware agents read the same files and see more.
 
