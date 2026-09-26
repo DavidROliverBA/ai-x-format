@@ -69,6 +69,8 @@ CORE_RELS = {
     # added in v0.3
     "supports", "supported-by", "merged-into", "merged-from",
     "split-from", "split-into",
+    # added in v0.4
+    "imported", "exported-to",
 }
 
 SUCCESSOR_RELS = {"superseded-by", "merged-into"}

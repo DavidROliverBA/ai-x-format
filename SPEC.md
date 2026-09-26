@@ -1,9 +1,9 @@
 # AIX — AI eXchange Format
 
-**Version:** 0.3
+**Version:** 0.4 (draft in progress)
 **Status:** Draft
-**Date:** 2026-09-21
-**Supersedes:** v0.2 (2026-08-20)
+**Date:** 2026-09-26
+**Supersedes:** v0.3 (2026-09-21)
 
 AIX is an open, vendor-neutral format for representing curated knowledge so that
 humans and AI agents can produce and consume it without a translation layer. It
@@ -264,6 +264,7 @@ treat an unknown `rel` as a generic `relates-to` edge rather than rejecting it.
 | `supports` | `supported-by` | The containing concept is evidence for the target (added in v0.3). The counterpart to `contradicts`: together they let a consumer see how a claim stands. |
 | `merged-into` | `merged-from` | The containing concept was absorbed by the target and is now a tombstone (added in v0.3; §6.6). |
 | `split-from` | `split-into` | The containing concept was carved out of the target (added in v0.3; §6.6). |
+| `imported` | `exported-to` | The containing concept is a copy of, or was derived from, the target in another bundle (added in v0.4; §9.6). The copy does **not** inherit the target's trust tier. |
 | `authored-by` | `author-of` | Attribution to a person/agent concept. |
 | `describes` | `described-by` | Explains or documents the target (added in v0.2; the primary edge between documentation, media, and subject). |
 
@@ -519,6 +520,35 @@ links:
   note called `customers`. Authoring tools MAY offer wikilinks in the editor
   but MUST compile them to ids or paths before publishing.
 
+**Explicit form (v0.4).** `aix://<namespace>/<id>` is an equivalent spelling of
+the qualified reference, for use where a bare `namespace/id` would be read as a
+path: markdown body links, authoring tools, URLs in MCP payloads. Consumers MUST
+accept both spellings everywhere a `to` value or body link is read, and a body
+link in the explicit form satisfies the mirroring rule (§6.4) for the matching
+typed link.
+
+```markdown
+See the [orders event stream](aix://data-eng/orders-events).
+```
+
+**Resolution of unqualified references in a federation (v0.4).** A consumer
+holding several bundles resolves an unqualified `to: <id>` as follows:
+
+1. In the containing bundle. If found, resolution is silent and final, even if
+   other held bundles also define that `id`.
+2. Otherwise, in the other held bundles in alphabetical order of namespace.
+   The first match wins, **and the consumer MUST emit a warning** that names
+   every namespace in which the `id` was found and the one chosen, and
+   recommends qualifying the reference. Resolution across a bundle boundary is
+   never silent.
+3. Otherwise, a tolerable broken link (§11.1).
+
+A reference resolved by step 2 is a cross-bundle reference for the purposes of
+§6.4 (mirroring is SHOULD, not MUST). This is the rule established by the Foam
+knowledge tool for multi-root workspaces; it was adopted after experiment E2
+showed it produces zero silent misresolutions on deliberately colliding
+fixtures.
+
 ### 9.3 Shared vocabularies
 
 Cross-bundle interoperability needs exactly two agreements: what the `type`
@@ -543,6 +573,68 @@ trust tiers mean the same thing in every bundle of a federation. A consumer
 reading five teams' bundles can prefer a human-verified concept over an
 unverified one while knowing nothing about the five teams. Producers MUST NOT
 redefine the actor-prefix convention within a federation.
+
+### 9.5 The federation manifest (new in v0.4)
+
+A consumer that holds several bundles SHOULD keep a `federation.aix.yaml`
+describing what it holds and where each bundle came from:
+
+```yaml
+aix: "0.4"
+federation: example-federation
+vocabularies:                       # federation-wide (§9.3); bundles MAY override
+  types: ./vocab/types-v1.json
+  rels:  ./vocab/rels-v1.json
+bundles:
+  - namespace: example-payments
+    source: git
+    repo: https://github.com/DavidROliverBA/aix-format
+    ref: 1408535                     # the exact commit held
+    subdir: examples                 # bundle root, relative to the repo root
+  - namespace: data-eng
+    source: path
+    path: ./data-eng                 # relative to this file
+```
+
+- `namespace` MUST equal the `namespace` in the bundle's own `manifest.aix.yaml`.
+- `subdir` (git sources) is the bundle root relative to the root of the
+  repository that holds it; `path` (path sources) is relative to the federation
+  manifest. Both point at the directory containing `manifest.aix.yaml`.
+- Two entries MUST NOT share a `namespace`.
+
+**What the manifest is for.** Experiment E1 showed that a consumer can resolve
+every cross-bundle reference *without* a federation manifest: each bundle's own
+`manifest.aix.yaml` travels with it, so a scan of the tree recovers every
+namespace. What a scan cannot recover is **provenance**: which commit of each
+bundle is held. So the rule is: consumers MAY discover bundle roots by scanning
+for `manifest.aix.yaml`; a consumer that claims reproducible provenance MUST
+hold a federation manifest (or an equivalent from which one can be generated,
+such as git's `.gitmodules` plus submodule commits) with a `ref` per bundle.
+
+A git repository whose bundles are submodules already carries this information;
+a tool MAY generate `federation.aix.yaml` from `.gitmodules` and
+`git submodule status`, and E1 did so.
+
+### 9.6 Importing a concept from another bundle (new in v0.4)
+
+Sometimes a bundle needs its own copy of a concept another bundle owns: to work
+offline, to freeze a version, or to annotate it locally. The copy MUST declare
+where it came from with an `imported` link:
+
+```yaml
+links:
+  - rel: imported
+    to: data-eng/orders-events
+    at: 2026-09-26
+    note: Copied at data-eng ref 7adc76e for offline use.
+```
+
+- The copy keeps its own `id`, `generated` and `verified`. It does **not**
+  inherit the source's trust tier: `verified` on the copy records who verified
+  *the copy*. A consumer that wants the source's trust follows the link.
+- The copy SHOULD carry the source's `stale_after` or an earlier date, never a
+  later one.
+- This is the answer AIX gives to OKF issue #15.
 
 ---
 
@@ -641,6 +733,10 @@ A conformant consumer:
   `state` on any other rel (§6.5).
 - SHOULD surface the successor of a deprecated concept (§6.6), guarding against
   cycles.
+- MUST accept `aix://namespace/id` wherever `namespace/id` is accepted, and MUST
+  warn, never stay silent, when it resolves an unqualified reference across a
+  bundle boundary (§9.2).
+- MUST NOT treat an `imported` copy as carrying its source's trust tier (§9.6).
 
 This permissive model is what keeps AIX useful while bundles evolve and agents
 generate content.
@@ -669,6 +765,31 @@ their own sanitisation before publishing a bundle — and SHOULD remember that
 Bundles declare the version they target via `manifest.aix.yaml`'s `aix` key.
 Minor versions remain readable by earlier consumers under the permissive rules
 of §11.1.
+
+### Changelog — v0.4 (draft, 2026-09-26)
+
+Theme: federation with evidence. Every addition below was tested in
+[`experiments/`](./experiments/) before it was written down; see
+`experiments/RESULTS.md` for the numbers.
+
+**Added:**
+
+- `aix://<namespace>/<id>` explicit reference form, accepted everywhere a
+  qualified reference is, including body links for §6.4 mirroring (§9.2).
+- Resolution rule for unqualified references across held bundles: own bundle
+  first, then alphabetical by namespace, always with a warning (§9.2). E2.
+- `federation.aix.yaml`: the consumer's manifest of held bundles with a `ref`
+  per bundle; required for provenance, not for resolution (§9.5). E1.
+- `imported` / `exported-to` relationship: a copy declares its source and does
+  not inherit its trust (§9.6). Answers OKF issue #15.
+- Validator: `--federation <manifest>`, federation stats (collisions, resolved
+  and unresolved qualified references, Foam-rule resolutions), per-bundle
+  provenance lines.
+
+_(E3–E6 findings to be folded in: index guidance, trust-survival rule wording,
+serving payload appendix, OCI distribution and `digest`.)_
+
+**Unchanged:** every v0.3 bundle is a valid v0.4 bundle.
 
 ### Changelog — v0.3 (2026-09-21)
 
