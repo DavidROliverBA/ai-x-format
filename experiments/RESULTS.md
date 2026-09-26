@@ -103,13 +103,13 @@ Real fixtures under `fixtures/federation.aix.yaml`: all three bundles PASS Level
 
 The two misses (q09, q11) need a second hop that one search-then-get cannot make; a tool-using agent can.
 
-**LLM mode (the plan's measures 1 and 2): not run.** No `ANTHROPIC_API_KEY` in the environment and a nested Claude Code session is off-limits here. The harness is written (tool-use loop, max 8 calls per question, `CITES:` parsing, second-call grader, model `claude-sonnet-4-5`) and runs with `./run.sh` once a key is set. The Claude Code and VS Code manual side-tests are specified in `e4-mcp/MANUAL.md`.
+**LLM mode (the plan's measures 1 and 2): not run, by decision (2026-09-26).** The author chose not to run it for v0.4; the harness stays in the repo for whoever does. The harness is written (tool-use loop, max 8 calls per question, `CITES:` parsing, second-call grader, model `claude-sonnet-4-5`) and runs with `./run.sh` once a key is set. The Claude Code and VS Code manual side-tests are specified in `e4-mcp/MANUAL.md`.
 
 **Findings not in the plan:**
 - `mcp` v2 silently drops structured output for a bare `-> dict` annotation; `-> dict[str, object]` is needed. Recorded for anyone building on this SDK version.
 - A `ref: 1408535` in the federation manifest parses as an integer under PyYAML. Fixture now quotes it; v0.4 §9.5 should say `ref` is a string.
 
-**Gate 3 decision this supports (provisionally, pending the LLM run):** the serving payload contract is `namespace` + `id` + `ref` on every item, verbatim frontmatter on `get`, and the bundle's provenance `ref` alongside. Resources are exposable for free but nothing in this experiment depended on them.
+**Gate 3 decision this supports (payload contract only; answer quality unmeasured):** the serving payload contract is `namespace` + `id` + `ref` on every item, verbatim frontmatter on `get`, and the bundle's provenance `ref` alongside. Resources are exposable for free but nothing in this experiment depended on them.
 
 ## E5: trust survival through transports
 
@@ -164,11 +164,11 @@ Six experiments, one day of agent time, all reproducible from this directory. Wh
 | E1 | A consumer manifest is needed to resolve cross-bundle refs | **Wrong**: bundles carry their own manifests; scanning resolves everything. The manifest is needed for **provenance** | §9.5: manifest MAY be derived, MUST exist to claim provenance; `ref` per bundle |
 | E2 | Foam's resolve-and-warn rule prevents silent misresolution | Confirmed: 0 silent, 2/2 warned, explicit form clean, no regression | §9.2 explicit `aix://` form and resolution order; §11.1 obligations |
 | E3 | Per-bundle collections beat a single collection on collisions | **Wrong**: only BM25 with `namespace` as a field got 4/4; hybrid ranking did not help | Non-normative index guidance: carry `namespace`/`id` as fields |
-| E4 | A tools-only MCP server carries identity end to end | Confirmed for the payload contract (18/20 deterministic floor, 4/4 collisions); LLM measure not yet run | Serving payload contract (pending the LLM run for a full appendix) |
+| E4 | A tools-only MCP server carries identity end to end | Confirmed for the payload contract (18/20 deterministic floor, 4/4 collisions); agent-answering measure deliberately not run | §9.8 serving guidance, scoped to the payload contract |
 | E5 | Trust survives transport, not ingestion | Confirmed with numbers: 45/45 keys through git, rsync, iCloud; 8/15 normalised by parse-and-rewrite; comments lost | §7.3a and a consumer obligation |
 | E6 | Signing catches tampering; digest can live in the bundle manifest | First confirmed; second **wrong** (chicken-and-egg): digest belongs in the federation manifest | §9.5 `source: oci` + `digest`; Appendix C; pinned `created` |
 
 Three of six hypotheses were wrong. That is the argument for running them.
 
-**Open:** the E4 LLM measures (needs an API key); the Claude Code and VS Code manual side-tests (`e4-mcp/MANUAL.md`); the Knowledge Catalog round trip (needs a GCP project); OKF issue bodies #16/#22/#26/#32 unread.
+**Open:** the E4 LLM measures (deliberately not run for v0.4; harness in place); the Claude Code and VS Code manual side-tests (`e4-mcp/MANUAL.md`); the Knowledge Catalog round trip (needs a GCP project); OKF issue bodies #16/#22/#26/#32 unread.
 

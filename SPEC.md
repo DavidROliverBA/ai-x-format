@@ -687,7 +687,11 @@ response SHOULD carry `namespace`, `id` and `ref: "namespace/id"`; `get` SHOULD
 return frontmatter verbatim, including `links`, and the provenance `ref` of the
 bundle it came from. Identity has to travel in the payload: nothing in the
 transport namespaces it. Experiment E4's server (`experiments/e4-mcp/`) is a
-minimal reference.
+minimal reference. E4 measured that the contract holds end to end (a
+deterministic search-then-get pass put the right `namespace/id` on top for
+18 of 20 questions and all four collision questions); it did not measure
+whether an agent answers correctly through it. That is future work, not a
+claim of this section.
 
 ---
 
@@ -859,11 +863,9 @@ Theme: federation with evidence. Every addition below was tested in
   collision questions, in both runs; a hybrid LLM-reranked index did not.
 - Non-normative serving guidance (§9.8): a tools-only MCP server returns
   `namespace`, `id`, `ref: "namespace/id"` on every item, frontmatter verbatim
-  on `get`, and the bundle's provenance `ref`. E4 (deterministic pass; the
-  agent-answering measure is still to be run).
-
-_(E4's agent-answering measure and the Claude Code / VS Code side-tests are the
-only planned measurements not yet run.)_
+  on `get`, and the bundle's provenance `ref`. E4 (deterministic pass only; the
+  agent-answering measure was deliberately not run for v0.4, so §9.8 rests on
+  the payload contract, not on answer quality).
 
 **Unchanged:** every v0.3 bundle is a valid v0.4 bundle.
 
