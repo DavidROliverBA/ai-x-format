@@ -594,9 +594,19 @@ bundles:
   - namespace: data-eng
     source: path
     path: ./data-eng                 # relative to this file
+  - namespace: vendor-kb
+    source: oci
+    ref: registry.example.com/kb/vendor-kb:2026-09
+    digest: sha256:9308e291b9057189c894f1d36d7f93424f08364c556603854c3cdb5b673976df
 ```
 
 - `namespace` MUST equal the `namespace` in the bundle's own `manifest.aix.yaml`.
+- `source: oci` names a bundle distributed as an OCI artifact (Appendix C).
+  `digest` is the artifact's manifest digest and is the provenance field, as
+  `ref` is for git. A bundle's own `manifest.aix.yaml` MUST NOT carry its own
+  digest: the manifest is inside the hashed content, so writing the digest
+  there changes it. The digest lives in the document that references the
+  bundle, exactly as OCI keeps signatures outside the artifact they sign.
 - `subdir` (git sources) is the bundle root relative to the root of the
   repository that holds it; `path` (path sources) is relative to the federation
   manifest. Both point at the directory containing `manifest.aix.yaml`.
@@ -780,14 +790,21 @@ Theme: federation with evidence. Every addition below was tested in
   first, then alphabetical by namespace, always with a warning (§9.2). E2.
 - `federation.aix.yaml`: the consumer's manifest of held bundles with a `ref`
   per bundle; required for provenance, not for resolution (§9.5). E1.
+- `source: oci` entries with a `digest` in the federation manifest; no digest
+  on a bundle's own manifest (§9.5). Appendix C on OCI distribution: one
+  gzipped tar layer, `artifactType` distinct from the layer media type, and
+  `org.opencontainers.image.created` pinned to the bundle's `generated`
+  timestamp so the manifest digest is reproducible (unpinned, oras stamps
+  wall-clock time and byte-identical content gets a new digest every push).
+  Signing left to the producer (Cosign key or keyless). E6.
 - `imported` / `exported-to` relationship: a copy declares its source and does
   not inherit its trust (§9.6). Answers OKF issue #15.
 - Validator: `--federation <manifest>`, federation stats (collisions, resolved
   and unresolved qualified references, Foam-rule resolutions), per-bundle
   provenance lines.
 
-_(E3–E6 findings to be folded in: index guidance, trust-survival rule wording,
-serving payload appendix, OCI distribution and `digest`.)_
+_(E3–E5 findings to be folded in: index guidance, trust-survival rule wording,
+serving payload appendix.)_
 
 **Unchanged:** every v0.3 bundle is a valid v0.4 bundle.
 
@@ -883,3 +900,28 @@ reference validator in [`tools/aix-validate.py`](./tools/aix-validate.py) at
 Level 3 and demonstrates OKF v0.2 trust fields, media identity, a
 federation-qualified link, per-claim attribution, an open contradiction
 between two claims, and a merge tombstone.
+
+## Appendix C — distributing a bundle as an OCI artifact (non-normative, v0.4)
+
+Tested in experiment E6 with `oras` 1.3.4 and `cosign` 3.1.3 against a local
+registry. The producer flow (package, push, sign) took under two seconds; the
+consumer flow (pull, verify, unpack) under one; a tampered re-push to the same
+tag failed verification while the original stayed verifiable by digest.
+
+- **Layer:** one `tar+gzip` of the bundle directory, built deterministically
+  (sorted entries, `mtime` 0, uid/gid 0), so the layer digest depends only on
+  content.
+- **Types:** `artifactType: application/vnd.aix.bundle.v1`; layer
+  `mediaType: application/vnd.aix.bundle.layer.v1+tar+gzip`. Keep them
+  distinct, as the OCI artifact guidance and the agent-skills OCI draft do.
+- **Annotations:** `org.opencontainers.image.title`, the bundle `name`,
+  `namespace` and `aix` version, the source commit, and
+  `org.opencontainers.image.created` **pinned to the bundle's `generated`
+  timestamp**. Left unpinned, `oras push` stamps the wall clock and the
+  manifest digest changes on every push of identical content.
+- **Signing:** `cosign sign` on the pushed reference (key pair or keyless).
+  Consumers verify by digest, not by tag; a tag can be overwritten, a digest
+  cannot.
+- **Reference from a federation:** `source: oci` with `ref` and `digest` in
+  `federation.aix.yaml` (§9.5).
+
