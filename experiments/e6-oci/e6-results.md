@@ -13,8 +13,8 @@ Cosign signed the **OCI artifact directly** (`cosign sign`, key-based, Referrers
 `examples/` (the `example-payments` bundle) packaged as a single-layer OCI artifact:
 
 - **Layer:** deterministic `tar.gz` of the bundle directory, entries rooted at `example-payments/`, sorted path order, `mtime=0` on every tar entry *and* on the gzip wrapper itself, `uid=gid=0`, `uname=gname=""`. Built with `experiments/e6-oci/make-bundle.py` (pure-Python `tarfile`/`gzip`, no shelling out to system `tar` — sidesteps the BSD-tar-vs-GNU-tar flag mismatch on macOS entirely).
-- **Media type / artifact type:** `application/vnd.aix.bundle.v1+tar+gzip` (proposed), used for both the manifest's `artifactType` and the single layer's `mediaType`.
-- **Config:** the OCI empty descriptor (`application/vnd.oci.empty.v1+json`) — this experiment did not define an AIX-specific structured config blob. See § Judgement calls.
+- **Media type / artifact type:** `application/vnd.ai-x.bundle.v1+tar+gzip` (proposed), used for both the manifest's `artifactType` and the single layer's `mediaType`.
+- **Config:** the OCI empty descriptor (`application/vnd.oci.empty.v1+json`) — this experiment did not define an AI-X-specific structured config blob. See § Judgement calls.
 - **Annotations set:**
 
   | Key | Value (example run) | Namespace |
@@ -22,16 +22,16 @@ Cosign signed the **OCI artifact directly** (`cosign sign`, key-based, Referrers
   | `org.opencontainers.image.title` | `example-payments` | standard OCI |
   | `org.opencontainers.image.created` | `2026-09-21T08:10:00Z` (the bundle's own `generated:` timestamp) | standard OCI |
   | `org.opencontainers.image.revision` | `f35d5db19120a78cca231538c72e9b98f5437995` | standard OCI |
-  | `io.aix.bundle.name` | `example-payments` | proposed AIX namespace |
-  | `io.aix.bundle.namespace` | `example-payments` | proposed AIX namespace |
-  | `io.aix.bundle.aix-version` | `0.3` | proposed AIX namespace |
+  | `io.aix.bundle.name` | `example-payments` | proposed AI-X namespace |
+  | `io.aix.bundle.namespace` | `example-payments` | proposed AI-X namespace |
+  | `io.aix.bundle.aix-version` | `0.3` | proposed AI-X namespace |
 
   Mirrors the two-namespace annotation pattern (`org.opencontainers.image.*` + a project-specific `io.*` namespace) used by the reference implementation skimmed for this experiment, [ThomasVitale/agents-skills-oci-artifacts-spec](https://github.com/ThomasVitale/agents-skills-oci-artifacts-spec) (`io.agentskills.skill.name` there → `io.aix.bundle.name` here).
 
 - **Manifest digest (a representative run):** `sha256:9308e291b9057189c894f1d36d7f93424f08364c556603854c3cdb5b673976df`
 - **Layer digest (the tar.gz content itself, stable across every run):** `sha256:f40d7b9a5b577641f28a0faf0f1f8d095bdd192f999e63607dee431c56b00ee2`
 
-**Reproducibility finding (not in the plan, discovered while building this):** `oras push` stamps `org.opencontainers.image.created` with the current wall-clock time by default *unless a value is supplied explicitly*. That default means the **manifest digest is not reproducible** across repeated pushes of byte-identical content — confirmed experimentally: two pushes of the same tarball with no explicit `created` annotation produced two different manifest digests; supplying a fixed value made every push produce the identical manifest digest. `run.sh` pins it to the bundle's own `generated:` field from `manifest.aix.yaml`, so re-publishing unchanged content reproduces the exact same manifest digest — verified across two full clean runs (`sha256:9308e291b9...` both times). Anyone doing this for real needs to know this default exists; it is easy to assume "same content in, same digest out" and be wrong purely because of a timestamp annotation, which has nothing to do with `make-bundle.py`'s own tar/gzip determinism.
+**Reproducibility finding (not in the plan, discovered while building this):** `oras push` stamps `org.opencontainers.image.created` with the current wall-clock time by default *unless a value is supplied explicitly*. That default means the **manifest digest is not reproducible** across repeated pushes of byte-identical content — confirmed experimentally: two pushes of the same tarball with no explicit `created` annotation produced two different manifest digests; supplying a fixed value made every push produce the identical manifest digest. `run.sh` pins it to the bundle's own `generated:` field from `manifest.ai-x.yaml`, so re-publishing unchanged content reproduces the exact same manifest digest — verified across two full clean runs (`sha256:9308e291b9...` both times). Anyone doing this for real needs to know this default exists; it is easy to assume "same content in, same digest out" and be wrong purely because of a timestamp annotation, which has nothing to do with `make-bundle.py`'s own tar/gzip determinism.
 
 ## Measure 2 — Verify (untouched) and tamper
 
@@ -57,41 +57,41 @@ Cosign signed the **OCI artifact directly** (`cosign sign`, key-based, Referrers
 2. *(out-of-band, not a shell command: obtain the producer's `cosign.pub` — e.g. from a release page or the federation manifest — cosign has no built-in discovery for a bare key)*
 3. `oras pull <ref> -o <dir>` — downloads the layer blob; **does not extract it**
 4. `cosign verify --key cosign.pub <digest-ref>` — must be the **digest** reference to get the "verify what you think you're signing" guarantee `cosign sign --help` itself warns about; a tag reference degrades the guarantee to "whatever the tag currently points at"
-5. `tar -xzf <bundle>.tar.gz` — to actually get the AIX bundle directory back
+5. `tar -xzf <bundle>.tar.gz` — to actually get the AI-X bundle directory back
 
 **Four shell commands** (one of them one-time/amortised) plus one manual, non-scriptable step (getting the public key). All local registry/local key-pair local timings; a real GHCR round-trip would add real network latency to steps 3–4, but not add or remove any command.
 
 ## Measure 3 — Validate the pulled bundle
 
 ```
-python3 tools/aix-validate.py <unpacked-original>/example-payments --level 3
+python3 tools/ai-x-validate.py <unpacked-original>/example-payments --level 3
 ```
 
 ```
-AIX validator — bundle: .../unpacked/example-payments
+AI-X validator — bundle: .../unpacked/example-payments
   concepts: 7
-  highest level achieved: 3 (AIX Federated)
+  highest level achieved: 3 (AI-X Federated)
   checked at level: 3
   ✓ no findings
 
 PASS at level 3 (0 error(s), 0 warning(s))
 ```
 
-The bundle that went through package → push → sign → pull → unpack is byte-identical to `examples/` and validates cleanly at Level 3 — the OCI round-trip is transparent to the AIX format, exactly as the reference agent-skills spec's design goal 3 ("transparent packaging") intends.
+The bundle that went through package → push → sign → pull → unpack is byte-identical to `examples/` and validates cleanly at Level 3 — the OCI round-trip is transparent to the AI-X format, exactly as the reference agent-skills spec's design goal 3 ("transparent packaging") intends.
 
-## Measure 3 (continued) — Can `manifest.aix.yaml` carry the digest?
+## Measure 3 (continued) — Can `manifest.ai-x.yaml` carry the digest?
 
-**No — not the bundle's own `manifest.aix.yaml`, and this is structural, not a limitation to fix later.**
+**No — not the bundle's own `manifest.ai-x.yaml`, and this is structural, not a limitation to fix later.**
 
-The digest is a hash of the *layer*, and the layer is a tar.gz of the whole bundle directory — including `manifest.aix.yaml` itself. Writing the digest into the file that gets hashed is the same chicken-and-egg problem as a file trying to contain its own checksum: writing the digest changes the file, which changes the hash, which invalidates the digest just written. There is no fixed point short of an infinite regress (this is the same reason git commits don't contain their own SHA inline, and why a code-signing certificate is never embedded inside the binary segment it signs — see also `CLAUDE.md`'s note that a hook script "can't validate its own hash" for the same structural reason).
+The digest is a hash of the *layer*, and the layer is a tar.gz of the whole bundle directory — including `manifest.ai-x.yaml` itself. Writing the digest into the file that gets hashed is the same chicken-and-egg problem as a file trying to contain its own checksum: writing the digest changes the file, which changes the hash, which invalidates the digest just written. There is no fixed point short of an infinite regress (this is the same reason git commits don't contain their own SHA inline, and why a code-signing certificate is never embedded inside the binary segment it signs — see also `CLAUDE.md`'s note that a hook script "can't validate its own hash" for the same structural reason).
 
 **The OCI spec itself solves this by keeping the digest outside the artifact, in the registry and in the signature** — which is exactly the pattern this experiment exercised:
 
 - The digest lives in the **registry's manifest store** (content-addressed by construction — the registry computed it, the artifact never had to know it).
 - The **signature** references the digest from outside the artifact (Cosign's Referrers API entry points *at* a digest; it isn't a file inside the signed content).
-- The **federation manifest** (`federation.aix.yaml`, from E1) is the right place at the AIX layer for the same reason: it's a document *about* bundles, not one of the bundles, so it can safely name a digest without that digest describing itself.
+- The **federation manifest** (`federation.ai-x.yaml`, from E1) is the right place at the AI-X layer for the same reason: it's a document *about* bundles, not one of the bundles, so it can safely name a digest without that digest describing itself.
 
-**Recommendation for v0.4**, building directly on E1's finding ("a federation manifest is required for provenance, not for resolution"): extend `federation.aix.yaml`'s existing `source: git` / `source: path` bundle-entry pattern with a third option, `source: oci`, carrying a `ref` and a `digest` — the OCI equivalent of `source: git`'s `ref: <commit>`:
+**Recommendation for v0.4**, building directly on E1's finding ("a federation manifest is required for provenance, not for resolution"): extend `federation.ai-x.yaml`'s existing `source: git` / `source: path` bundle-entry pattern with a third option, `source: oci`, carrying a `ref` and a `digest` — the OCI equivalent of `source: git`'s `ref: <commit>`:
 
 ```yaml
 bundles:
@@ -101,9 +101,9 @@ bundles:
     digest: sha256:9308e291b9057189c894f1d36d7f93424f08364c556603854c3cdb5b673976df
 ```
 
-This is deliberately **not** the plan's original sketch of a `distribution: {oci: <ref>, digest: ...}` block *inside* `manifest.aix.yaml`. It keeps the digest where E1 already put provenance (the federation manifest, external to every bundle it describes) instead of introducing a second, self-referential place to put it. A tool that publishes a bundle would: package → push → sign → **then** write the resulting digest into whatever `federation.aix.yaml` its consumers use — an ordinary "record what just happened" step, not a paradox.
+This is deliberately **not** the plan's original sketch of a `distribution: {oci: <ref>, digest: ...}` block *inside* `manifest.ai-x.yaml`. It keeps the digest where E1 already put provenance (the federation manifest, external to every bundle it describes) instead of introducing a second, self-referential place to put it. A tool that publishes a bundle would: package → push → sign → **then** write the resulting digest into whatever `federation.ai-x.yaml` its consumers use — an ordinary "record what just happened" step, not a paradox.
 
-**v0.4 should mention OCI distribution** as a third `source:` option alongside `git` and `path` in the federation manifest (E1), documented with the annotation and layer conventions from this experiment. It should **not** add a `digest` field to `manifest.aix.yaml` itself.
+**v0.4 should mention OCI distribution** as a third `source:` option alongside `git` and `path` in the federation manifest (E1), documented with the annotation and layer conventions from this experiment. It should **not** add a `digest` field to `manifest.ai-x.yaml` itself.
 
 ## Fallback path (not exercised — Docker was running)
 
@@ -118,14 +118,14 @@ Checked at v3.1.3; worth re-checking if this experiment is re-run against a newe
 
 1. **`oras push` rejects absolute file paths by default** (`Error: absolute file path detected`). Resolved by `cd`-ing into the scratch directory and pushing/pulling with relative filenames, rather than reaching for `--disable-path-validation` — no reason to disable a real safety check when a relative path does the job.
 2. **The layer's `org.opencontainers.image.title` annotation is derived from the pushed file's path** and is what `oras pull` uses as the output filename; an absolute title trips oras's own path-traversal guard on pull (`path traversal disallowed`). Same fix as (1): push with a relative name.
-3. **Single artifact type used for both `artifactType` and the layer `mediaType`**, per the plan's literal wording ("artifact type `application/vnd.aix.bundle.v1+tar+gzip`"). The reference spec skimmed for this experiment separates a `skill.v1` artifact type from a `skill.content.v1.tar+gzip` layer media type, and defines a structured config blob carrying queryable metadata (name/version/description) without unpacking the layer. This experiment used the OCI empty config descriptor instead — sufficient to answer E6's three measures, but a real v0.4 proposal should probably define an AIX config schema (bundle name, namespace, `aix` version, concept count) mirroring `manifest.aix.yaml`'s own top-level fields, the same way the reference spec's config mirrors `SKILL.md` frontmatter. Left as a follow-up, not implemented here.
+3. **Single artifact type used for both `artifactType` and the layer `mediaType`**, per the plan's literal wording ("artifact type `application/vnd.ai-x.bundle.v1+tar+gzip`"). The reference spec skimmed for this experiment separates a `skill.v1` artifact type from a `skill.content.v1.tar+gzip` layer media type, and defines a structured config blob carrying queryable metadata (name/version/description) without unpacking the layer. This experiment used the OCI empty config descriptor instead — sufficient to answer E6's three measures, but a real v0.4 proposal should probably define an AI-X config schema (bundle name, namespace, `ai-x` version, concept count) mirroring `manifest.ai-x.yaml`'s own top-level fields, the same way the reference spec's config mirrors `SKILL.md` frontmatter. Left as a follow-up, not implemented here.
 4. **`cosign verify`/`sign` require `--allow-http-registry`** against the local plain-HTTP registry — expected and fine for an experiment; a real deployment (GHCR, ECR, etc.) is TLS by default and wouldn't need it.
-5. **Key-based signing only** (`cosign generate-key-pair`, `COSIGN_PASSWORD=""`), per the task's explicit instruction not to attempt keyless/OIDC (interactive browser login). The private key lives in `/tmp/aix-e6/keys/`, outside the repo, and `run.sh` reuses it across runs rather than regenerating (regeneration would itself be a reason for the tag-verify test to fail, muddying the tamper-test result with an unrelated cause).
+5. **Key-based signing only** (`cosign generate-key-pair`, `COSIGN_PASSWORD=""`), per the task's explicit instruction not to attempt keyless/OIDC (interactive browser login). The private key lives in `/tmp/ai-x-e6/keys/`, outside the repo, and `run.sh` reuses it across runs rather than regenerating (regeneration would itself be a reason for the tag-verify test to fail, muddying the tamper-test result with an unrelated cause).
 6. **`org.opencontainers.image.created` pinned to the bundle's own `generated:` field** — see Measure 1's reproducibility finding. Without this, re-running `run.sh` twice with unchanged bundle content produces two different "original" digests, which would make the write-up's specific digest values meaningless from one run to the next (they're still internally consistent per run — the tamper test still works — but not citable as *the* digest for this bundle).
 7. **Local Docker registry, not GHCR**, per the task's explicit instruction (the available `gh` token lacks `write:packages`). Port 5001, not 5000, per the task's own note that 5000 is often taken on macOS (AirPlay Receiver) — confirmed unnecessary to check, just followed the instruction.
 
 ## Decision this supports (plan §2, E6 "Decides")
 
-- **v0.4 should mention OCI distribution**, scoped as a third `source:` option in `federation.aix.yaml` (E1) — `git`, `path`, `oci` — not as a change to `manifest.aix.yaml`.
-- **`manifest.aix.yaml` should NOT gain a `digest` field.** The digest belongs one level up, in the document that references bundles rather than in a bundle referencing itself.
+- **v0.4 should mention OCI distribution**, scoped as a third `source:` option in `federation.ai-x.yaml` (E1) — `git`, `path`, `oci` — not as a change to `manifest.ai-x.yaml`.
+- **`manifest.ai-x.yaml` should NOT gain a `digest` field.** The digest belongs one level up, in the document that references bundles rather than in a bundle referencing itself.
 - Signed OCI distribution catches tampering correctly and cheaply: sub-2-second producer flow, sub-second consumer flow, zero false passes and zero false failures across every run of this experiment.

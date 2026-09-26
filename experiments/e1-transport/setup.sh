@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # experiments/e1-transport/setup.sh
 #
-# Builds $E1_WORK (default /tmp/aix-e1), wiping it first, so every run starts
+# Builds $E1_WORK (default /tmp/ai-x-e1), wiping it first, so every run starts
 # from the same state. Creates three LOCAL bare git repositories that act as
 # "remotes" for the federation transport experiment (E1 — see README.md):
 #
@@ -17,10 +17,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-E1_WORK="${E1_WORK:-/tmp/aix-e1}"
+E1_WORK="${E1_WORK:-/tmp/ai-x-e1}"
 
 FIXED_DATE="2026-09-26T09:00:00+00:00"
-FIXED_NAME="AIX E1 Fixture"
+FIXED_NAME="AI-X E1 Fixture"
 FIXED_EMAIL="e1-fixture@example.invalid"
 
 echo "== E1 setup: building scratch environment at $E1_WORK =="

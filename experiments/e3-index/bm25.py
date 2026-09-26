@@ -6,7 +6,7 @@ third-party dependencies — this is the point of comparison against qmd).
 Tokenises the *whole file* (YAML frontmatter + markdown body) into lowercase
 alphanumeric tokens. Each document is tagged with:
 
-  - `namespace` — read from its bundle's manifest.aix.yaml `namespace:` field
+  - `namespace` — read from its bundle's manifest.ai-x.yaml `namespace:` field
     (not the `name:` field, though the two happen to match in these fixtures).
   - `id`        — the file's own frontmatter `id:` field. Files with no
     frontmatter (index.md, log.md) have no `id`; they fall back to the
@@ -54,7 +54,7 @@ def _frontmatter_block(text: str) -> str | None:
 
 
 def read_manifest_namespace(bundle_dir: Path) -> str:
-    manifest = bundle_dir / "manifest.aix.yaml"
+    manifest = bundle_dir / "manifest.ai-x.yaml"
     text = manifest.read_text()
     m = re.search(r'^namespace:\s*"?([^"\n]+?)"?\s*$', text, re.MULTILINE)
     if not m:
@@ -184,7 +184,7 @@ def default_bundle_dirs(repo_root: Path) -> list[Path]:
 
 def main() -> None:
     here = Path(__file__).resolve().parent
-    repo_root_default = here.parents[1]  # .../aix-format
+    repo_root_default = here.parents[1]  # .../ai-x-format
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--build", action="store_true", help="build and persist the index")

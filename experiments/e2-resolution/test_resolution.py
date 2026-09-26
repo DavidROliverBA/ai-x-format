@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for aix-validate.py's --federation identity resolution (E2).
+"""Tests for ai-x-validate.py's --federation identity resolution (E2).
 
 Invokes the validator via subprocess with --json under both YAML parsers:
 the stdlib fallback mini-parser (plain `python3`, no PyYAML installed) and
@@ -21,17 +21,17 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
-VALIDATOR = REPO_ROOT / "tools" / "aix-validate.py"
+VALIDATOR = REPO_ROOT / "tools" / "ai-x-validate.py"
 EXAMPLES = REPO_ROOT / "examples"
 BUNDLE_C = HERE / "bundle-c"
-FEDERATION_YAML = HERE / "federation.aix.yaml"
+FEDERATION_YAML = HERE / "federation.ai-x.yaml"
 BASELINE_FILE = HERE / "baseline-examples-level2.json"
 
 HAS_UV = shutil.which("uv") is not None
 
 
 def run_validator(args: list[str], use_pyyaml: bool = False, cwd: Path = REPO_ROOT) -> tuple[int, dict]:
-    """Run aix-validate.py with --json and return (returncode, parsed_json)."""
+    """Run ai-x-validate.py with --json and return (returncode, parsed_json)."""
     if use_pyyaml:
         cmd = ["uv", "run", "-q", "--with", "pyyaml", "python3", str(VALIDATOR), *args]
     else:
@@ -91,7 +91,7 @@ class RegressionUnchanged(unittest.TestCase):
 class FederationResolution(unittest.TestCase):
     """bundle-c under --federation exercises every reference form: Foam-rule
     unqualified resolution (single and colliding candidates), a resolving
-    qualified reference, a resolving explicit aix:// reference, an illegal
+    qualified reference, a resolving explicit ai-x:// reference, an illegal
     same-bundle qualification, and an unresolved qualified reference."""
 
     EXPECTED = {
@@ -125,15 +125,15 @@ class FederationResolution(unittest.TestCase):
                               f"expected exactly one {severity} finding matching {substrings}, got {matches}")
 
         # Zero silent misresolutions: the two references that DO resolve
-        # cleanly (qualified `a/only-a` and explicit `aix://b/shared`) must
+        # cleanly (qualified `a/only-a` and explicit `ai-x://b/shared`) must
         # produce no finding at all — links[2] and links[3] are absent.
         self.assertEqual(find_findings(findings, "links[2]"), [])
         self.assertEqual(find_findings(findings, "links[3]"), [])
         self.assertEqual(find_findings(findings, "a/only-a` qualified"), [])
-        self.assertEqual(find_findings(findings, "aix://b/shared"), [])
+        self.assertEqual(find_findings(findings, "ai-x://b/shared"), [])
 
     def test_resolution_stdlib_parser(self):
-        rc, data = run_validator(["bundle-c", "--federation", "federation.aix.yaml", "--json"], cwd=HERE)
+        rc, data = run_validator(["bundle-c", "--federation", "federation.ai-x.yaml", "--json"], cwd=HERE)
         self.assertEqual(rc, 1)  # the same-bundle-qualification case is an error
         self.assertFalse(data["passed"])
         self.assertEqual(data["achieved_level"], 1)
@@ -143,7 +143,7 @@ class FederationResolution(unittest.TestCase):
         if not HAS_UV:
             self.skipTest("uv not available")
         rc, data = run_validator(
-            ["bundle-c", "--federation", "federation.aix.yaml", "--json"], use_pyyaml=True, cwd=HERE)
+            ["bundle-c", "--federation", "federation.ai-x.yaml", "--json"], use_pyyaml=True, cwd=HERE)
         self.assertEqual(rc, 1)
         self.assertFalse(data["passed"])
         self._check(data["findings"])
@@ -151,13 +151,13 @@ class FederationResolution(unittest.TestCase):
     def test_stdlib_and_pyyaml_agree_on_bundle_c(self):
         if not HAS_UV:
             self.skipTest("uv not available")
-        _, a = run_validator(["bundle-c", "--federation", "federation.aix.yaml", "--json"], cwd=HERE)
+        _, a = run_validator(["bundle-c", "--federation", "federation.ai-x.yaml", "--json"], cwd=HERE)
         _, b = run_validator(
-            ["bundle-c", "--federation", "federation.aix.yaml", "--json"], use_pyyaml=True, cwd=HERE)
+            ["bundle-c", "--federation", "federation.ai-x.yaml", "--json"], use_pyyaml=True, cwd=HERE)
         self.assertEqual(normalize_bundle_field(a), normalize_bundle_field(b))
 
     def test_federation_provenance_in_json(self):
-        _, data = run_validator(["bundle-c", "--federation", "federation.aix.yaml", "--json"], cwd=HERE)
+        _, data = run_validator(["bundle-c", "--federation", "federation.ai-x.yaml", "--json"], cwd=HERE)
         fed = data["federation"]
         self.assertEqual(sorted(fed["namespaces"]), ["a", "b", "c"])
         namespaces_held = {b["namespace"] for b in fed["bundles"]}
@@ -169,7 +169,7 @@ class FederationResolution(unittest.TestCase):
 
     def test_federation_stats(self):
         _, data = run_validator(
-            ["bundle-c", "--federation", "federation.aix.yaml", "--stats", "--json"], cwd=HERE)
+            ["bundle-c", "--federation", "federation.ai-x.yaml", "--stats", "--json"], cwd=HERE)
         fed_stats = data["stats"]["federation"]
         self.assertEqual(fed_stats["bundles_held"], 3)
         self.assertEqual(fed_stats["concepts_per_namespace"], {"a": 2, "b": 2, "c": 2})
@@ -178,7 +178,7 @@ class FederationResolution(unittest.TestCase):
         self.assertEqual(fed_stats["unqualified_cross_bundle_resolutions"], 2)
 
     def test_provenance_report_text_mode(self):
-        cmd = [sys.executable, str(VALIDATOR), "bundle-c", "--federation", "federation.aix.yaml"]
+        cmd = [sys.executable, str(VALIDATOR), "bundle-c", "--federation", "federation.ai-x.yaml"]
         proc = subprocess.run(cmd, cwd=HERE, capture_output=True, text=True)
         self.assertIn("federation: 3 bundle(s) held (a, b, c)", proc.stdout)
         for ns in ("a", "b", "c"):
@@ -193,7 +193,7 @@ class FederationResolution(unittest.TestCase):
         never appear in the federation-collision list, and no Foam-rule
         warning names bundle c as a candidate for its own id."""
         _, data = run_validator(
-            ["bundle-c", "--federation", "federation.aix.yaml", "--stats", "--json"], cwd=HERE)
+            ["bundle-c", "--federation", "federation.ai-x.yaml", "--stats", "--json"], cwd=HERE)
         collisions = data["stats"]["federation"]["colliding_ids"]
         self.assertNotIn("linker", collisions)
         self.assertNotIn("something", collisions)

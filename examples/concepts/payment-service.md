@@ -21,7 +21,7 @@ sources:
     resource: https://internal.example.com/runbooks/payments
     title: Payments runbook
 
-# AIX additions
+# AI-X additions
 provenance:
   confidence: high
   source: primary

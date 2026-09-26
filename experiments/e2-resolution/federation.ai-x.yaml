@@ -1,8 +1,8 @@
-aix: "0.4"
+ai-x: "0.4"
 federation: e2-resolution
 description: >-
   E2 fixture federation — three tiny bundles (a, b, c) used to test
-  aix-validate.py --federation's identity resolution under collision
+  ai-x-validate.py --federation's identity resolution under collision
   (MyVault plan 2026-09-26 §1, experiment E2).
 bundles:
   - namespace: a

@@ -2,7 +2,7 @@
 
 ## 2026-09-26
 
-- **Update** — Migrated bundle to AIX v0.3; confirmed federation-qualified links to `example-payments/payment-service-v2` and `example-payments/orders-table` use the `namespace/id` form.
+- **Update** — Migrated bundle to AI-X v0.3; confirmed federation-qualified links to `example-payments/payment-service-v2` and `example-payments/orders-table` use the `namespace/id` form.
 
 ## 2026-09-01
 

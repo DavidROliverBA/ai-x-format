@@ -2,7 +2,7 @@
 
 ## 2026-09-26
 
-- **Update** — Migrated bundle to AIX v0.3 conventions for the federation fixture set; no content changes.
+- **Update** — Migrated bundle to AI-X v0.3 conventions for the federation fixture set; no content changes.
 
 ## 2026-03-05
 

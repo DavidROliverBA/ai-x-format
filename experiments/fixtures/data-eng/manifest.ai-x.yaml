@@ -1,4 +1,4 @@
-aix: "0.3"
+ai-x: "0.3"
 name: data-eng
 namespace: data-eng
 description: Fixture bundle for federation experiments — the data engineering team's view of the orders and customers data, the event stream that payment service v2 consumes, and a retention policy. Deliberately shares two ids (orders-table, customers) with the payments and household bundles to test id-collision handling.

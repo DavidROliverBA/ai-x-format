@@ -2,7 +2,7 @@
 type: Concept
 id: linker
 title: Linker
-description: Exercises every `to:` reference form the --federation resolver has to handle — unqualified own-bundle-miss, qualified, explicit aix://, same-bundle self-qualification, and unresolved qualified.
+description: Exercises every `to:` reference form the --federation resolver has to handle — unqualified own-bundle-miss, qualified, explicit ai-x://, same-bundle self-qualification, and unresolved qualified.
 tags: [fixture, e2-resolution]
 generated:
   by: human:e2-fixture
@@ -26,10 +26,10 @@ links:
   - rel: relates-to
     to: a/only-a
     note: Qualified — resolves cleanly against bundle a.
-  # (4) Explicit aix:// form, resolves in the federation index — no finding.
+  # (4) Explicit ai-x:// form, resolves in the federation index — no finding.
   - rel: relates-to
-    to: aix://b/shared
-    note: Explicit aix:// form — resolves cleanly against bundle b.
+    to: ai-x://b/shared
+    note: Explicit ai-x:// form — resolves cleanly against bundle b.
   # (5) Qualified with THIS bundle's own namespace — MUST NOT (SPEC §9.2) — error,
   # even though `something` exists in this bundle and would otherwise resolve.
   - rel: relates-to
@@ -52,7 +52,7 @@ illustrative, not required.
 - [Only In A](only-a) — unqualified, resolves only in bundle a.
 - [Shared](shared) — unqualified, resolves in both a and b.
 - [Only In A, qualified](a/only-a) — federation-qualified `namespace/id`.
-- [Shared, via aix://](aix://b/shared) — the explicit `aix://namespace/id`
+- [Shared, via ai-x://](ai-x://b/shared) — the explicit `ai-x://namespace/id`
   form. `body_link_targets` recognises this scheme and also registers the
   bare `b/shared` form, so it would mirror either spelling of the `to:`.
 - [Something, wrongly self-qualified](c/something) — MUST NOT per SPEC §9.2.

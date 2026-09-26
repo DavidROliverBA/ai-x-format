@@ -7,7 +7,7 @@ against the plan's pass criteria, and the decision the gate produced.
 
 **2026-09-26.** Built by a Sonnet agent from the plan §1; corrected by hand for two plan errors.
 
-- `data-eng` (5 concepts) and `household` (5 concepts) both PASS `aix-validate --level 3` with zero errors and zero warnings. `examples/` (`example-payments`) unchanged, still PASS.
+- `data-eng` (5 concepts) and `household` (5 concepts) both PASS `ai-x-validate --level 3` with zero errors and zero warnings. `examples/` (`example-payments`) unchanged, still PASS.
 - Deliberate collisions in place: `orders-table` (example-payments vs data-eng) and `customers` (data-eng vs household).
 - `vocab/types-v1.json` (7 types) and `vocab/rels-v1.json` (28 rels: the §6.2 core vocabulary plus the registered extension rels).
 - `questions.yaml`: 20 questions, 12 cross-bundle, 8 single-bundle, 4 targeting a colliding id.
@@ -34,18 +34,18 @@ against the plan's pass criteria, and the decision the gate produced.
 | M3 exact commit per bundle nameable (yes for a, c; no for b) | yes, submodule SHAs | **no** (`ref: null`) | yes, from the `git-subtree-split` trailer |
 | M4 rebuild from clean clone byte-identical (yes) | yes | yes | yes |
 
-**The plan's hypothesis was wrong on M1.** Resolution never needed a manifest: `git subtree add --squash` copies each bundle's own `manifest.aix.yaml`, so a scan for that file recovers every namespace, and the validator resolves all references. What layout (b) loses is **provenance** (M3): the pre-squash commit is only recoverable from a git trailer that nothing AIX-shaped knows to read.
+**The plan's hypothesis was wrong on M1.** Resolution never needed a manifest: `git subtree add --squash` copies each bundle's own `manifest.ai-x.yaml`, so a scan for that file recovers every namespace, and the validator resolves all references. What layout (b) loses is **provenance** (M3): the pre-squash commit is only recoverable from a git trailer that nothing AI-X-shaped knows to read.
 
 **Gate 1 decision this supports:**
-- A federation manifest is **required for provenance, not for resolution**. v0.4 should say: a consumer MAY discover bundle roots by scanning for `manifest.aix.yaml`; it MUST hold a `federation.aix.yaml` (or equivalent, `.gitmodules` qualifies) to claim reproducible provenance, and the `ref` per bundle is the field that matters.
-- `.gitmodules` + `git submodule status` was enough to *generate* a complete manifest, so the spec can describe `federation.aix.yaml` as derivable from submodules rather than competing with them.
+- A federation manifest is **required for provenance, not for resolution**. v0.4 should say: a consumer MAY discover bundle roots by scanning for `manifest.ai-x.yaml`; it MUST hold a `federation.ai-x.yaml` (or equivalent, `.gitmodules` qualifies) to claim reproducible provenance, and the `ref` per bundle is the field that matters.
+- `.gitmodules` + `git submodule status` was enough to *generate* a complete manifest, so the spec can describe `federation.ai-x.yaml` as derivable from submodules rather than competing with them.
 - `subdir` for `source: git` entries must be the bundle root relative to the repo holding the manifest (`bundles/<ns>`, not `.`): the plan's sketch was wrong there too.
 
 **Judgement calls recorded:** `protocol.file.allow=always` needed for local-path subtrees on this git; bash 3.2 compatibility (no associative arrays).
 
 ## E2: identity resolution under collision
 
-**2026-09-26.** Validator gained `--federation <manifest>`, the explicit `aix://namespace/id` form, and the Foam rule (own bundle first, then other namespaces alphabetically, always with a warning naming every candidate). Built by a Sonnet agent; re-run and checked by the author. `python3 3.13`, both the stdlib fallback parser and PyYAML.
+**2026-09-26.** Validator gained `--federation <manifest>`, the explicit `ai-x://namespace/id` form, and the Foam rule (own bundle first, then other namespaces alphabetically, always with a warning naming every candidate). Built by a Sonnet agent; re-run and checked by the author. `python3 3.13`, both the stdlib fallback parser and PyYAML.
 
 Synthetic collision suite (`e2-resolution/`, bundles a, b, c; `test_resolution.py`, 10 tests):
 
@@ -53,15 +53,15 @@ Synthetic collision suite (`e2-resolution/`, bundles a, b, c; `test_resolution.p
 |---|---|
 | 1. Silent wrong resolutions (0) | **0** |
 | 2. Warnings for every ambiguous unqualified reference (100 %) | **2 of 2** (`only-a` single candidate; `shared` two candidates, resolved to `a`, both named) |
-| 3. Explicit `aix://b/shared` resolves without warning (100 %) | **yes**; qualified `a/only-a` likewise |
+| 3. Explicit `ai-x://b/shared` resolves without warning (100 %) | **yes**; qualified `a/only-a` likewise |
 | 4. Regression on `examples/` without the flag (0 new findings) | **byte-identical** JSON and text, all levels, both parsers |
 | Extra | same-bundle qualified ref `c/something` → error (§9.2); unresolved `b/missing` → tolerated warning |
 
-Real fixtures under `fixtures/federation.aix.yaml`: all three bundles PASS Level 3 with zero findings; federation stats report the two deliberate collisions (`orders-table`: data-eng/example-payments; `customers`: data-eng/household) and 2 qualified refs resolved, 0 unresolved. The fixtures contain no *unqualified* cross-bundle references, by design, so the Foam rule is exercised only by the synthetic suite.
+Real fixtures under `fixtures/federation.ai-x.yaml`: all three bundles PASS Level 3 with zero findings; federation stats report the two deliberate collisions (`orders-table`: data-eng/example-payments; `customers`: data-eng/household) and 2 qualified refs resolved, 0 unresolved. The fixtures contain no *unqualified* cross-bundle references, by design, so the Foam rule is exercised only by the synthetic suite.
 
 **Decisions the gate can now take:**
 - Resolution order for §9.2: own bundle wins unconditionally and silently; otherwise other namespaces alphabetically with a mandatory warning. Confirmed workable.
-- `aix://namespace/id` as the explicit authoring form: implemented, mirrors a `to:` for §6.4, and the Level 3 well-formedness check accepts it. Ready for v0.4 text.
+- `ai-x://namespace/id` as the explicit authoring form: implemented, mirrors a `to:` for §6.4, and the Level 3 well-formedness check accepts it. Ready for v0.4 text.
 - Body-link mirroring: a Foam-resolved reference is treated as cross-bundle (SHOULD mirror, not MUST). Recorded as a judgement call; v0.4 should say so.
 - `source: git` in the federation manifest is *provenance only* in this experiment (no fetching); E1 measures whether that is enough.
 
@@ -84,11 +84,11 @@ Real fixtures under `fixtures/federation.aix.yaml`: all three bundles PASS Level
 
 **Findings not in the plan:** qmd does not follow symlinks for a collection root, so (b) needed a materialised copy of the three bundles; namespace for (b) had to be recovered from the first path segment. Both are consumer-side plumbing the spec cannot fix.
 
-**Gate 2 decision this supports:** AIX v0.4 does not specify an index. It recommends, non-normatively, that any index over a federation carry `namespace` and `id` as fields on every document and return `namespace/id` on every hit; "collection = namespace" is a convenient way to get that in tools that support collections, but it is the field, not the collection, that resolves collisions. A hybrid/LLM-reranked index is not a substitute for that field.
+**Gate 2 decision this supports:** AI-X v0.4 does not specify an index. It recommends, non-normatively, that any index over a federation carry `namespace` and `id` as fields on every document and return `namespace/id` on every hit; "collection = namespace" is a convenient way to get that in tools that support collections, but it is the field, not the collection, that resolves collisions. A hybrid/LLM-reranked index is not a substitute for that field.
 
 ## E4: serving via MCP tools
 
-**2026-09-26.** `mcp` SDK 2.2.0 (v2 API), Python 3.11 under uv. Tools-only stdio server over `fixtures/federation.aix.yaml` (`list_bundles`, `list_concepts`, `search`, `get`), reusing the validator's own frontmatter and federation-loading code so resolution matches E1/E2 exactly; each concept also exposed as an `aix://namespace/id` resource for the VS Code side-test. Built by a Sonnet agent; smoke test (15 checks) and deterministic pass re-run by the author.
+**2026-09-26.** `mcp` SDK 2.2.0 (v2 API), Python 3.11 under uv. Tools-only stdio server over `fixtures/federation.ai-x.yaml` (`list_bundles`, `list_concepts`, `search`, `get`), reusing the validator's own frontmatter and federation-loading code so resolution matches E1/E2 exactly; each concept also exposed as an `ai-x://namespace/id` resource for the VS Code side-test. Built by a Sonnet agent; smoke test (15 checks) and deterministic pass re-run by the author.
 
 **Payload contract held end to end:** every concept-shaped response carries `namespace`, `id` and `ref: "namespace/id"`; `get` returns frontmatter verbatim including `links` (the federation-qualified `example-payments/orders-table` link survives) and `bundle_ref`; unknown namespace or id returns a tool error, never a crash.
 
@@ -129,7 +129,7 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 
 **Finding not in the plan:** a single `brctl status` read gave a false "synced" on iCloud immediately after the copy; the run now requires three consecutive clean polls. Recorded as a heuristic, not proof of server-side upload.
 
-**Gate 2 decision this supports:** v0.4 states the rule in §7 and adds one consumer obligation, already implicit in §5.5 and §11.1: an ingesting tool MUST either round-trip unknown keys opaquely or document which keys it drops. The vault's `aix-export` does not need a sidecar for file transports; a sidecar is only for chunking ingestion (Vertex-style), out of scope.
+**Gate 2 decision this supports:** v0.4 states the rule in §7 and adds one consumer obligation, already implicit in §5.5 and §11.1: an ingesting tool MUST either round-trip unknown keys opaquely or document which keys it drops. The vault's `ai-x-export` does not need a sidecar for file transports; a sidecar is only for chunking ingestion (Vertex-style), out of scope.
 
 ## E6: integrity (ORAS + Cosign)
 
@@ -149,9 +149,9 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 - `oras push` stamps `org.opencontainers.image.created` with wall-clock time, so the *manifest* digest of byte-identical content differs on every push until `created` is pinned. `run.sh` pins it to the bundle's `generated` timestamp; the digest is then reproducible across clean runs. v0.4 guidance must say this or every "reproducible digest" claim is false by default.
 - The reference OCI-skills spec separates `artifactType` from the layer `mediaType` and defines a structured config blob; E6 used one type for both and the empty config. A v0.4 appendix should adopt the separation.
 
-**Measure 3, the `digest` question: answered against the plan.** `manifest.aix.yaml` must **not** carry its own digest: the manifest is inside the hashed layer, so writing the digest changes the digest. The OCI ecosystem keeps signatures and referrers outside the artifact for the same reason. The digest belongs in the document that *references* the bundle: add `source: oci` to `federation.aix.yaml` with `ref` (registry reference) and `digest`, parallel to `source: git` + `ref: <commit>`.
+**Measure 3, the `digest` question: answered against the plan.** `manifest.ai-x.yaml` must **not** carry its own digest: the manifest is inside the hashed layer, so writing the digest changes the digest. The OCI ecosystem keeps signatures and referrers outside the artifact for the same reason. The digest belongs in the document that *references* the bundle: add `source: oci` to `federation.ai-x.yaml` with `ref` (registry reference) and `digest`, parallel to `source: git` + `ref: <commit>`.
 
-**Gate 4 decision this supports:** v0.4 mentions OCI distribution as a non-normative appendix (artifact type, pinned `created`, key or keyless signing left to the producer) and adds `source: oci` to §9.5. No `digest` field on `manifest.aix.yaml`.
+**Gate 4 decision this supports:** v0.4 mentions OCI distribution as a non-normative appendix (artifact type, pinned `created`, key or keyless signing left to the producer) and adds `source: oci` to §9.5. No `digest` field on `manifest.ai-x.yaml`.
 
 ---
 
@@ -162,7 +162,7 @@ Six experiments, one day of agent time, all reproducible from this directory. Wh
 | Experiment | Hypothesis | Outcome | Went into v0.4 as |
 |---|---|---|---|
 | E1 | A consumer manifest is needed to resolve cross-bundle refs | **Wrong**: bundles carry their own manifests; scanning resolves everything. The manifest is needed for **provenance** | §9.5: manifest MAY be derived, MUST exist to claim provenance; `ref` per bundle |
-| E2 | Foam's resolve-and-warn rule prevents silent misresolution | Confirmed: 0 silent, 2/2 warned, explicit form clean, no regression | §9.2 explicit `aix://` form and resolution order; §11.1 obligations |
+| E2 | Foam's resolve-and-warn rule prevents silent misresolution | Confirmed: 0 silent, 2/2 warned, explicit form clean, no regression | §9.2 explicit `ai-x://` form and resolution order; §11.1 obligations |
 | E3 | Per-bundle collections beat a single collection on collisions | **Wrong**: only BM25 with `namespace` as a field got 4/4; hybrid ranking did not help | Non-normative index guidance: carry `namespace`/`id` as fields |
 | E4 | A tools-only MCP server carries identity end to end | Confirmed for the payload contract (18/20 deterministic floor, 4/4 collisions); agent-answering measure deliberately not run | §9.8 serving guidance, scoped to the payload contract |
 | E5 | Trust survives transport, not ingestion | Confirmed with numbers: 45/45 keys through git, rsync, iCloud; 8/15 normalised by parse-and-rewrite; comments lost | §7.3a and a consumer obligation |

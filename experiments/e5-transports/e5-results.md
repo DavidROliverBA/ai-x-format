@@ -6,8 +6,8 @@ this repo, kept in the planning vault). Round-trips `examples/` (namespace
 `example-payments`, 7 concepts: 2 `System`, 2 `Claim`, 1 `DataAsset`, 1
 `Person`, 1 tombstone `System`) through five transports and diffs
 frontmatter key-by-key plus whole-file bytes. Reproduce with
-`experiments/e5-transports/run.sh` (writes scratch state to `/tmp/aix-e5/`,
-never touches `examples/`, `tools/aix-validate.py`, or other
+`experiments/e5-transports/run.sh` (writes scratch state to `/tmp/ai-x-e5/`,
+never touches `examples/`, `tools/ai-x-validate.py`, or other
 `experiments/*` directories).
 
 **Run date:** 2026-09-26. **Tool versions:** git 2.54.0 (Apple Git-157),
@@ -37,7 +37,7 @@ lost by any transport tested here. The plan's fixtures never got to exercise
 real loss (that requires (d), skipped) — but (e) demonstrates *why* (d) is
 expected to lose keys: kcmd's `--json`-equivalent step is exactly this
 parse-and-rewrite operation, just with a target schema that only has room
-for seven of AIX's frontmatter keys.
+for seven of AI-X's frontmatter keys.
 
 ## (a) git: init → commit → clone
 
@@ -76,8 +76,8 @@ Files compared: **10**. Byte-identical: **10/10**. Identical per-key table to
 
 ## (c) iCloud Drive
 
-Bundle copied into `~/Library/Mobile Documents/com~apple~CloudDocs/aix-e5-roundtrip/`,
-polled for up to 120s, copied back out to `/tmp/aix-e5/icloud/dest/`, diffed,
+Bundle copied into `~/Library/Mobile Documents/com~apple~CloudDocs/ai-x-e5-roundtrip/`,
+polled for up to 120s, copied back out to `/tmp/ai-x-e5/icloud/dest/`, diffed,
 then the iCloud folder removed.
 
 **Sync confirmation: YES, with a caveat.** The first poll design (single
@@ -137,7 +137,7 @@ And from the "first pull" section (§6, verified in the same fetch):
 
 **Against our 7-concept bundle, this means:** `verified`, `status`+trust
 tier logic beyond `generated`/`sources`, `provenance`, `stale_after`, and
-every `links`/`media` entry — i.e. everything AIX/OKF adds beyond the
+every `links`/`media` entry — i.e. everything AI-X/OKF adds beyond the
 original seven OKF v0.1 keys the connector was built for — would be **lost**
 on push, not normalised. `sync-capture-limits-throughput.md`'s
 `contradicts`/`state: open` link, `payment-service.md`'s `media` hash, and
@@ -153,7 +153,7 @@ Simulates what any parse-and-rewrite tool — kcmd included, per its own "first
 pull rewrites every frontmatter block" documentation quoted above — does to
 a bundle even when it claims to carry every key. Files compared: **10**.
 Byte-identical: **3/10** (the 3 non-frontmatter files — `index.md`, `log.md`,
-`manifest.aix.yaml` — pass through unchanged; all 7 concept files change).
+`manifest.ai-x.yaml` — pass through unchanged; all 7 concept files change).
 
 | Key | Status | preserved/normalised/lost (files) | What changed |
 |---|---|---|---|
@@ -177,7 +177,7 @@ Byte-identical: **3/10** (the 3 non-frontmatter files — `index.md`, `log.md`,
 canonicalised to UTC ISO 8601, lists/dicts compared recursively) — this is
 formatting churn, not data loss. One thing PyYAML round-tripping *does*
 discard that isn't a frontmatter key at all: **inline YAML comments**
-(`# OKF v0.2 trust & lifecycle`, `# AIX additions` section headers present in
+(`# OKF v0.2 trust & lifecycle`, `# AI-X additions` section headers present in
 2 of the 7 concept files — `payment-service.md` and `payment-service-v2.md`)
 vanish, because YAML's data model has no place for them. `compare.py`
 detects and flags this separately (`comments_lost`) —
@@ -223,14 +223,14 @@ concepts, 100% of the time, in this experiment. Every transport that treats
 the bundle as **structured data to be re-expressed** behaved differently in
 proportion to how much of the structure it understands:
 
-- PyYAML's round trip (e) understands *all* of AIX's YAML, so it only
+- PyYAML's round trip (e) understands *all* of AI-X's YAML, so it only
   **normalises** — 8 of 15 keys change surface syntax (flow→block lists,
   `Z`-suffixed timestamps → UTC-offset timestamps, list indentation, line
   wrapping) but every value is recoverable and semantically identical. It
   also silently drops non-key content (comments) that isn't part of the
   data model at all.
-- kcmd, by its own documentation, understands *seven* of AIX's keys and
-  nothing about AIX's link/trust extensions, so the same class of operation
+- kcmd, by its own documentation, understands *seven* of AI-X's keys and
+  nothing about AI-X's link/trust extensions, so the same class of operation
   (parse, then re-express) **loses** `verified`, `provenance`, `stale_after`
   beyond its own use, every `links` entry's `state`/contradiction metadata,
   and all `media` — because there is nowhere in its target schema for them
@@ -240,11 +240,11 @@ The dividing line is not "did the file move," it's "did something need to
 *understand* the file to move it." Transport failure modes (git corruption,
 rsync interruption, iCloud eviction) are availability problems with
 well-understood recovery paths. Ingestion failure modes — a tool that only
-partially models AIX's schema — are **silent and structural**: nothing
+partially models AI-X's schema — are **silent and structural**: nothing
 errors, the push/pull commands report success, and the lost fields are
 simply absent from what comes back. This is exactly what the plan's E5
 question was checking for, and it argues that **v0.4's guidance to
-implementers should be**: any tool consuming an AIX bundle must either (a)
+implementers should be**: any tool consuming an AI-X bundle must either (a)
 round-trip the full frontmatter opaquely (treat unknown keys as pass-through,
 the way `safe_dump` does), or (b) declare explicitly, in the way this
 connector's docs do, exactly which keys it drops — because "seven keys

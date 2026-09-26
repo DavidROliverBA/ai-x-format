@@ -23,9 +23,9 @@ programmatic loop, gets the same behaviour.
 1. Register the server (once):
 
    ```bash
-   claude mcp add aix-federation -- uv run --with mcp --with pyyaml \
-     /ABS/PATH/TO/aix-format/experiments/e4-mcp/server.py --federation \
-     /ABS/PATH/TO/aix-format/experiments/fixtures/federation.aix.yaml
+   claude mcp add ai-x-federation -- uv run --with mcp --with pyyaml \
+     /ABS/PATH/TO/ai-x-format/experiments/e4-mcp/server.py --federation \
+     /ABS/PATH/TO/ai-x-format/experiments/fixtures/federation.ai-x.yaml
    ```
 
    (See `mcp-config.example.json` for the equivalent raw JSON if you'd
@@ -33,7 +33,7 @@ programmatic loop, gets the same behaviour.
 
 2. Start a **fresh** Claude Code session (no other context — this is testing
    the tools alone, not vault knowledge) and confirm the server connected:
-   `/mcp` should list `aix-federation` with 4 tools.
+   `/mcp` should list `ai-x-federation` with 4 tools.
 
 3. Pick 4–6 questions from `questions.yaml` — include at least one of the 4
    collision questions (`q01`–`q04`, ids `collision: true`) and one
@@ -60,16 +60,16 @@ MCP resource UI has no search, so the model (or a person) is limited to
 whatever resources are listed or whatever URI they think to type. That gap
 is itself the finding; don't be surprised by it.
 
-1. Open the `aix-format` repo as a VS Code workspace.
+1. Open the `ai-x-format` repo as a VS Code workspace.
 2. Copy `mcp-config.example.json`'s `_vscode_dot_vscode_mcp_json.servers`
    block into `.vscode/mcp.json` (create the file/folder if needed) — just
    the `{"servers": {...}}` shape, not the `_comment`/`_vscode_dot_vscode…`
    wrapper keys.
 3. Start the server from VS Code's MCP panel (or reload the window so it
-   autostarts) and confirm `aix-federation` shows as running with resources
-   listed under `aix://<namespace>/<id>` — note there is no bulk "list all"
+   autostarts) and confirm `ai-x-federation` shows as running with resources
+   listed under `ai-x://<namespace>/<id>` — note there is no bulk "list all"
    without paging through `list_resources`/templates in the panel, since
-   this server exposes concepts as a template (`aix://{namespace}/{id}`),
+   this server exposes concepts as a template (`ai-x://{namespace}/{id}`),
    not one fixed resource per concept.
 4. Open Copilot Chat in **agent mode** with only resources available (no
    tools) — attach the resource(s) you believe answer a question, the same

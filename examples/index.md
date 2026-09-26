@@ -1,6 +1,6 @@
 # Example Payments Bundle
 
-A minimal AIX bundle showing a service being superseded, its data dependency,
+A minimal AI-X bundle showing a service being superseded, its data dependency,
 an author, two claims that disagree, and a merge tombstone.
 
 ## Services

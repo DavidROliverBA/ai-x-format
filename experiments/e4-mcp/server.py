@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""E4: a tools-only MCP server over an AIX federation manifest.
+"""E4: a tools-only MCP server over an AI-X federation manifest.
 
 Plan: MyVault docs/plans/2026-09-26-federation-experiments-plan.md, E4 section.
 Shape copied from Google's minimal `fileskb` sample (list / search / read over
-a directory) and from the AIX validator's own `--federation` loader, so
-resolution rules match `tools/aix-validate.py` exactly (SPEC §9, §6).
+a directory) and from the AI-X validator's own `--federation` loader, so
+resolution rules match `tools/ai-x-validate.py` exactly (SPEC §9, §6).
 
 Tools (all namespace/id-addressed, never wiki-link-addressed — SPEC §9.2):
     list_bundles()                          -> [{namespace, concepts, ref}]
@@ -19,18 +19,18 @@ bundle (a git commit for `source: git` bundles, `null` for `source: path`
 bundles that carry no ref) — this is the provenance field E1 found matters
 more than resolution itself.
 
-Each concept is also exposed as a resource `aix://<namespace>/<id>`
+Each concept is also exposed as a resource `ai-x://<namespace>/<id>`
 (text/markdown, the concept file's raw content verbatim) for the VS Code
 side-test (E4 measure 3). Resources are secondary; tools are primary.
 
 Run directly (stdio, the default transport):
-    uv run --with mcp --with pyyaml server.py [--federation <federation.aix.yaml>]
+    uv run --with mcp --with pyyaml server.py [--federation <federation.ai-x.yaml>]
 
 Inspect interactively:
     uv run --with mcp --with pyyaml mcp dev server.py -- --federation <path>
 
 Self-contained beyond the two `--with` packages: PyYAML is preferred but
-optional — `tools/aix-validate.py` (imported directly, not reimplemented)
+optional — `tools/ai-x-validate.py` (imported directly, not reimplemented)
 falls back to a stdlib-only YAML subset parser when PyYAML is absent, the
 same fallback E2 proved byte-identical against the fixtures.
 """
@@ -52,18 +52,18 @@ from mcp.server.mcpserver.exceptions import ResourceNotFoundError, ToolError
 # --- Paths ---------------------------------------------------------------
 
 THIS_FILE = Path(__file__).resolve()
-REPO_ROOT = THIS_FILE.parents[2]  # experiments/e4-mcp/server.py -> aix-format/
-VALIDATOR_PATH = REPO_ROOT / "tools" / "aix-validate.py"
-DEFAULT_FEDERATION = REPO_ROOT / "experiments" / "fixtures" / "federation.aix.yaml"
+REPO_ROOT = THIS_FILE.parents[2]  # experiments/e4-mcp/server.py -> ai-x-format/
+VALIDATOR_PATH = REPO_ROOT / "tools" / "ai-x-validate.py"
+DEFAULT_FEDERATION = REPO_ROOT / "experiments" / "fixtures" / "federation.ai-x.yaml"
 
 
 def _load_validator_module() -> ModuleType:
-    """Import tools/aix-validate.py by path (hyphenated filename, not a
+    """Import tools/ai-x-validate.py by path (hyphenated filename, not a
     valid module name) so this server reuses its exact frontmatter/YAML
     parsing and federation-manifest loading rather than reimplementing
     either — the task's own instruction, and the reason E1/E2's numbers
     and this server's numbers can be compared directly."""
-    spec = importlib.util.spec_from_file_location("aix_validate", VALIDATOR_PATH)
+    spec = importlib.util.spec_from_file_location("ai_x_validate", VALIDATOR_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"could not load validator module from {VALIDATOR_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -92,10 +92,10 @@ FEDERATION_PATH = _parse_federation_path()
 # --- Federation loading ----------------------------------------------------
 
 def load_federation_bundles(fed_path: Path) -> dict[str, dict]:
-    """Load every bundle a federation.aix.yaml lists, resolving `source:
+    """Load every bundle a federation.ai-x.yaml lists, resolving `source:
     path` relative to the manifest and `source: git` as `subdir` relative
     to the manifest's own git repo root — identical resolution to
-    `aix-validate.py --federation` (SPEC §9). Returns
+    `ai-x-validate.py --federation` (SPEC §9). Returns
     {namespace: {root, ref, source, concepts: {id: {fm, body, path}}}}."""
     if not fed_path.is_file():
         raise RuntimeError(f"federation manifest not found: {fed_path}")
@@ -137,7 +137,7 @@ def json_safe(value):
     values are preserved verbatim, only the Python type changes for
     transport. A no-op when the stdlib fallback parser is in play, since it
     keeps every scalar as a string already (SPEC-parsing note in
-    aix-validate.py)."""
+    ai-x-validate.py)."""
     if isinstance(value, dict):
         return {k: json_safe(v) for k, v in value.items()}
     if isinstance(value, list):
@@ -250,9 +250,9 @@ def make_snippet(fm: dict, body: str, length: int = 200) -> str:
 # --- MCP server --------------------------------------------------------
 
 mcp = MCPServer(
-    "aix-federation",
+    "ai-x-federation",
     instructions=(
-        "Serves an AIX federation of knowledge bundles. Use list_bundles to see what's "
+        "Serves an AI-X federation of knowledge bundles. Use list_bundles to see what's "
         "held, search or list_concepts to find a concept, and get(namespace, id) to read "
         "one in full. Always cite results as namespace/id — two bundles in this "
         "federation deliberately share bare ids, and only the namespace disambiguates them."
@@ -351,7 +351,7 @@ def get(namespace: str, id: str) -> dict[str, object]:
     }
 
 
-@mcp.resource("aix://{namespace}/{id}", mime_type="text/markdown")
+@mcp.resource("ai-x://{namespace}/{id}", mime_type="text/markdown")
 def concept_resource(namespace: str, id: str) -> str:
     """The concept file's raw markdown (frontmatter + body), verbatim, for
     clients that only read resources (the VS Code side-test, E4 measure 3)."""
@@ -367,7 +367,7 @@ def concept_resource(namespace: str, id: str) -> str:
 
 if __name__ == "__main__":
     print(
-        f"aix-federation MCP server: {len(FEDERATION)} bundle(s) held from {FEDERATION_PATH} "
+        f"ai-x-federation MCP server: {len(FEDERATION)} bundle(s) held from {FEDERATION_PATH} "
         f"({sum(len(b['concepts']) for b in FEDERATION.values())} concepts total)",
         file=sys.stderr,
     )

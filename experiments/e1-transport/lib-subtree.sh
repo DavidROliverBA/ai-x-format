@@ -8,7 +8,7 @@
 e1_build_subtree_consumer() {
   local consumer="$1" label="$2"
   local fixed_date="2026-09-26T09:10:00+00:00"
-  local fixed_name="AIX E1 Fixture"
+  local fixed_name="AI-X E1 Fixture"
   local fixed_email="e1-fixture@example.invalid"
 
   echo "== $label: git subtree merges, three remotes into one repo =="

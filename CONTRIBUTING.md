@@ -1,6 +1,6 @@
-# Contributing to AIX
+# Contributing to AI-X
 
-AIX v0.3 is an early draft designed for backward-compatible growth. Contributions
+AI-X v0.3 is an early draft designed for backward-compatible growth. Contributions
 and alternative implementations are welcome.
 
 ## Ways to help
@@ -16,12 +16,12 @@ and alternative implementations are welcome.
 
 ## Ground rules
 
-- Keep AIX a **strict superset of OKF v0.2**. Any change that would make a
-  conformant AIX bundle fail OKF validation is out of scope.
+- Keep AI-X a **strict superset of OKF v0.2**. Any change that would make a
+  conformant AI-X bundle fail OKF validation is out of scope.
 - Prefer conventions that stay "just markdown + YAML + files": readable without
   tooling, diffable in git, parseable without an SDK.
 - Every normative change to `SPEC.md` must keep the reference validator
-  (`tools/aix-validate.py`) and the `examples/` bundle passing.
+  (`tools/ai-x-validate.py`) and the `examples/` bundle passing.
 
 - Keep **format** and **policy** apart. `SPEC.md` says what a bundle can express;
   `CURATOR.md` suggests how a curator should behave. Behavioural rules do not
@@ -30,5 +30,5 @@ and alternative implementations are welcome.
 ## Validating locally
 
 ```bash
-python3 tools/aix-validate.py examples/ --level 3 --stats
+python3 tools/ai-x-validate.py examples/ --level 3 --stats
 ```

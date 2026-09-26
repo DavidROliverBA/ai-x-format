@@ -1,4 +1,4 @@
-aix: "0.3"
+ai-x: "0.3"
 name: household
 namespace: household
 description: Fixture bundle for federation experiments — a small, unrelated domestic domain (a home-baking side business, boiler servicing, insurance renewal) with no business relationship to the payments or data-eng bundles. Shares one id (customers) with data-eng to test that unrelated collisions never resolve across namespaces. Fictional; no real people, addresses, or companies.

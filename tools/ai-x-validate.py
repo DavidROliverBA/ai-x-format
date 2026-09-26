@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
-"""AIX v0.3 reference validator.
+"""AI-X v0.3 reference validator.
 
-Validates an AIX bundle against the conformance ladder defined in ../SPEC.md:
+Validates an AI-X bundle against the conformance ladder defined in ../SPEC.md:
 
   Level 0  OKF-compatible  — every non-reserved .md has parseable frontmatter
                              with a non-empty `type`.
-  Level 1  AIX Core        — Level 0 + unique `id` per concept + manifest.aix.yaml
-                             declaring `aix` and `name`.
-  Level 2  AIX Full        — Level 1 + every `links` entry is a valid link object
+  Level 1  AI-X Core        — Level 0 + unique `id` per concept + manifest.ai-x.yaml
+                             declaring `ai-x` and `name`.
+  Level 2  AI-X Full        — Level 1 + every `links` entry is a valid link object
                              (rel + resolvable `to`), same-bundle links mirrored
                              by a body link, + trust signals on every concept
                              (a `provenance` map or an OKF v0.2 trust field),
                              + every `media` entry carries a `uri`,
                              + any link `state` / `resolved` is well-formed.
-  Level 3  AIX Federated   — Level 2 + manifest declares a valid `namespace`
+  Level 3  AI-X Federated   — Level 2 + manifest declares a valid `namespace`
                              and `vocabularies`; qualified references are
                              well-formed `namespace/id`.
 
 Usage:
-    python3 aix-validate.py <bundle-dir> [--level N] [--json] [--stats]
-                            [--federation <federation.aix.yaml>]
+    python3 ai-x-validate.py <bundle-dir> [--level N] [--json] [--stats]
+                            [--federation <federation.ai-x.yaml>]
 
 `--stats` reports curation health (SPEC §6.5, §7.2, §10.2): trust tiers,
 staleness, open and resolved contradictions, per-claim citation coverage, the
@@ -27,11 +27,11 @@ spread of asserted confidence, and the Update:Creation ratio from log.md. It
 never affects pass/fail — it measures whether a bundle is compounding, which
 is a question of policy, not conformance.
 
-`--federation <path>` (experimental, SPEC §9) loads a `federation.aix.yaml`
+`--federation <path>` (experimental, SPEC §9) loads a `federation.ai-x.yaml`
 manifest describing sibling bundles (`bundles[]`, each `source: path` or
 `source: git`), builds a namespace -> id index across all of them, and
 resolves the bundle-under-test's `to:` references against it:
-  - `namespace/id` and the explicit `aix://namespace/id` form resolve against
+  - `namespace/id` and the explicit `ai-x://namespace/id` form resolve against
     the federation index; unresolved is a tolerated warning, and a reference
     qualified with the bundle's own namespace is an error (SPEC §9.2).
   - An unqualified `to:` that fails to resolve in the bundle itself but does
@@ -45,7 +45,7 @@ out of scope; `ref` is recorded for provenance reporting only. With
 report which bundles were held and their resolved roots.
 
 Self-contained: uses PyYAML if present, otherwise a minimal built-in parser
-covering the subset of YAML that AIX frontmatter uses. Derives nothing from a
+covering the subset of YAML that AI-X frontmatter uses. Derives nothing from a
 hardcoded path.
 """
 from __future__ import annotations
@@ -59,7 +59,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 RESERVED_MD = {"index.md", "log.md"}
-MANIFEST_NAME = "manifest.aix.yaml"
+LEGACY_SCHEME = "aix://"                     # pre-v0.4 spelling of ai-x://
+MANIFEST_NAME = "manifest.ai-x.yaml"
+LEGACY_MANIFEST_NAME = "manifest.aix.yaml"   # pre-v0.4 spelling: read, warn, never write
 
 CORE_RELS = {
     "relates-to", "part-of", "has-part", "depends-on", "depended-on-by",
@@ -77,7 +79,7 @@ SUCCESSOR_RELS = {"superseded-by", "merged-into"}
 OKF_STATUS = {"draft", "stable", "deprecated"}
 LINK_STATES = {"open", "resolved"}
 OUTCOMES = {"superseded", "reconciled", "both-stand"}
-# AIX v0.2 actor spellings that deviate from OKF's convention (SPEC §7.3).
+# AI-X v0.2 actor spellings that deviate from OKF's convention (SPEC §7.3).
 BAD_ACTOR_PREFIXES = ("agent:", "pipeline:")
 LOG_WORDS = ("Initialization", "Creation", "Update", "Merge", "Split",
              "Deprecation", "Contradiction", "Resolution", "Gap")
@@ -136,7 +138,7 @@ def _coerce(v: str):
 
 def _mini_yaml(text: str):
     """Minimal parser: top-level scalars/lists/maps, one level of nesting,
-    and lists-of-maps (as used by AIX `links`). Not a general YAML parser."""
+    and lists-of-maps (as used by AI-X `links`). Not a general YAML parser."""
     root: dict = {}
     lines = [ln.rstrip("\n") for ln in text.split("\n")]
     i = 0
@@ -268,10 +270,10 @@ def body_link_targets(body: str, concept_dir: Path, bundle: Path):
         # also record the resolved id (filename stem) for id-based matching
         stem = Path(tgt).stem
         targets.add(stem)
-        # aix://<namespace>/<id> (federation-qualified, SPEC §9.2) also
+        # ai-x://<namespace>/<id> (federation-qualified, SPEC §9.2) also
         # mirrors a bare `namespace/id` link target with the same meaning.
-        if tgt.startswith("aix://"):
-            targets.add(tgt[len("aix://"):])
+        if tgt.startswith("ai-x://"):
+            targets.add(tgt[len("ai-x://"):])
     return targets
 
 
@@ -482,10 +484,12 @@ def print_stats(s: dict):
 
 def qualified_parts(to: str):
     """If `to` is a well-formed qualified reference — `namespace/id` or the
-    explicit `aix://namespace/id` form (SPEC §9.2, NEW) — return
+    explicit `ai-x://namespace/id` form (SPEC §9.2, NEW) — return
     (namespace, id, explicit); otherwise None. Does not check resolution."""
-    explicit = to.startswith("aix://")
-    qual = to[len("aix://"):] if explicit else to
+    if isinstance(to, str) and to.startswith(LEGACY_SCHEME):
+        to = "ai-x://" + to[len(LEGACY_SCHEME):]
+    explicit = to.startswith("ai-x://")
+    qual = to[len("ai-x://"):] if explicit else to
     if QUALIFIED_RE.match(qual):
         ns, _, cid = qual.partition("/")
         return ns, cid, explicit
@@ -520,16 +524,16 @@ def scan_bundle_ids(bundle_root: Path) -> dict[str, Path]:
 
 
 def load_federation(fed_path: Path):
-    """Load a federation.aix.yaml manifest (proposed format, MyVault plan
+    """Load a federation.ai-x.yaml manifest (proposed format, MyVault plan
     2026-09-26 §1). Returns (federation, findings, bundle_reports):
       - federation: {"index": {namespace: {id: Path}}, "namespaces": [...],
         "vocab_types": set|None, "vocab_rels": set|None}
       - findings: Finding list, reported under the synthetic path
-        "federation.aix.yaml" regardless of the manifest's real location.
+        "federation.ai-x.yaml" regardless of the manifest's real location.
       - bundle_reports: [{"namespace", "root", "ref", "source"}, ...] for
         the provenance report (E1)."""
     findings: list[Finding] = []
-    fed_label = "federation.aix.yaml"
+    fed_label = "federation.ai-x.yaml"
     try:
         man = load_yaml(fed_path.read_text(encoding="utf-8")) or {}
     except Exception as e:  # noqa: BLE001
@@ -680,7 +684,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
         rel = str(p.relative_to(bundle))
         fm, err, body = parse_concept(p)
         if fm is None:
-            findings.append(Finding("error", rel, "no YAML frontmatter (OKF/AIX require it)"))
+            findings.append(Finding("error", rel, "no YAML frontmatter (OKF/AI-X require it)"))
             continue
         if fm == "PARSE_ERROR":
             findings.append(Finding("error", rel, f"frontmatter parse error: {err}"))
@@ -719,12 +723,18 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
     # Level 1 checks
     if target_level >= 1:
         manifest = bundle / MANIFEST_NAME
+        if not manifest.exists() and (bundle / LEGACY_MANIFEST_NAME).exists():
+            manifest = bundle / LEGACY_MANIFEST_NAME
+            findings.append(Finding("warning", LEGACY_MANIFEST_NAME, "pre-v0.4 spelling — rename to manifest.ai-x.yaml (AI-X v0.4)"))
         if not manifest.exists():
-            findings.append(Finding("error", MANIFEST_NAME, "missing manifest.aix.yaml (required at Level 1)"))
+            findings.append(Finding("error", MANIFEST_NAME, "missing manifest.ai-x.yaml (required at Level 1)"))
         else:
             try:
                 man = load_yaml(manifest.read_text(encoding="utf-8")) or {}
-                for k in ("aix", "name"):
+                if man.get("aix") and not man.get("ai-x"):
+                    findings.append(Finding("warning", MANIFEST_NAME, "manifest key `aix` is the pre-v0.4 spelling — rename to `ai-x`"))
+                    man["ai-x"] = man["aix"]
+                for k in ("ai-x", "name"):
                     if not man.get(k):
                         findings.append(Finding("error", MANIFEST_NAME, f"manifest missing `{k}`"))
             except Exception as e:  # noqa: BLE001
@@ -736,7 +746,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
     # Level 2 checks
     if target_level >= 2:
         for rel, (fm, body, p) in parsed.items():
-            # trust signals: AIX provenance map OR any OKF v0.2 trust field
+            # trust signals: AI-X provenance map OR any OKF v0.2 trust field
             has_prov = isinstance(fm.get("provenance"), dict)
             has_okf_trust = any(fm.get(k) is not None for k in OKF_TRUST_FIELDS)
             if not has_prov and not has_okf_trust:
@@ -748,7 +758,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                 for k in DEPRECATED_PROV_KEYS:
                     if fm["provenance"].get(k) is not None:
                         findings.append(Finding("warning", rel, f"`provenance.{k}` is deprecated (SPEC §7.3) — use the OKF v0.2 field"))
-            # OKF spellings AIX v0.2 got wrong (SPEC §7.3) — warn, don't fail
+            # OKF spellings AI-X v0.2 got wrong (SPEC §7.3) — warn, don't fail
             st = fm.get("status")
             if st is not None and str(st) not in OKF_STATUS:
                 hint = " — use `stable`" if str(st) == "active" else ""
@@ -844,7 +854,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                     continue
 
                 # --federation: qualified (`namespace/id` or the explicit
-                # `aix://namespace/id`, SPEC §9.2 + NEW) references resolve
+                # `ai-x://namespace/id`, SPEC §9.2 + NEW) references resolve
                 # against the federation-wide index. An unqualified reference
                 # is tried against this bundle first (below); if it fails
                 # there it falls back to the Foam rule — other bundles in
@@ -939,7 +949,7 @@ def concepts_count(bundle: Path) -> int:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Validate an AIX v0.3 bundle.")
+    ap = argparse.ArgumentParser(description="Validate an AI-X v0.3 bundle.")
     ap.add_argument("bundle", type=Path, help="path to the bundle directory")
     ap.add_argument("--level", type=int, default=2, choices=[0, 1, 2, 3],
                     help="highest conformance level to check (default 2)")
@@ -949,8 +959,8 @@ def main():
     ap.add_argument("--today", type=str, default=None,
                     help="YYYY-MM-DD to evaluate `stale_after` against (default: today, UTC)")
     ap.add_argument("--federation", type=Path, default=None,
-                    help="path to a federation.aix.yaml manifest; resolves namespace/id and "
-                         "aix://namespace/id references against its federation-wide index")
+                    help="path to a federation.ai-x.yaml manifest; resolves namespace/id and "
+                         "ai-x://namespace/id references against its federation-wide index")
     args = ap.parse_args()
 
     bundle = args.bundle
@@ -991,9 +1001,9 @@ def main():
         print(json.dumps(out, indent=2))
         sys.exit(0 if len(errors) == 0 else 1)
 
-    print(f"AIX validator — bundle: {bundle}")
+    print(f"AI-X validator — bundle: {bundle}")
     print(f"  concepts: {n}")
-    label = {0: "OKF-compatible", 1: "AIX Core", 2: "AIX Full", 3: "AIX Federated", -1: "none"}
+    label = {0: "OKF-compatible", 1: "AI-X Core", 2: "AI-X Full", 3: "AI-X Federated", -1: "none"}
     print(f"  highest level achieved: {highest} ({label.get(highest, '?')})")
     print(f"  checked at level: {args.level}")
     if federation is not None:

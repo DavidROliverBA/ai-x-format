@@ -1,7 +1,7 @@
-aix: "0.3"
+ai-x: "0.3"
 name: example-payments
 namespace: example-payments
-description: A tiny worked AIX bundle demonstrating identity, typed links, trust signals, media identity, federation, per-claim attribution, an open contradiction and a merge tombstone.
+description: A tiny worked AI-X bundle demonstrating identity, typed links, trust signals, media identity, federation, per-claim attribution, an open contradiction and a merge tombstone.
 producer: hand-authored
 generated: 2026-09-21T08:10:00Z
 conformance: 3
