@@ -216,6 +216,11 @@ is a valid v0.4 bundle, and every v0.2 bundle a valid v0.3 one; v0.1 bundles rem
 fields (`timestamp`, `provenance.verified` / `.freshness` / `.reviewed`) read
 but no longer written. See the changelog in [`SPEC.md`](./SPEC.md) §13.
 
+AI-XF exists to try things ahead of the OKF specification, not to compete with
+it. Every feature that OKF adopts is retired from AI-XF in favour of OKF's
+definition, as happened with the trust and lifecycle fields when OKF v0.2
+shipped. If OKF wins as the standard, AI-XF has done its job.
+
 It has one producer and one consumer today, which makes it a published
 hypothesis rather than a standard. Feedback, alternative implementations and
 conformance cases are welcome; see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
