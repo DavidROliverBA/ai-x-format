@@ -200,6 +200,15 @@ be a superset of OKF; AI-XF is that superset written down.
   resolution rule, consumer manifest, `imported`, OCI distribution; every rule
   tested in `experiments/` before it was written down.
 
+## Naming
+
+AI-XF is an independent open-source project. It is not affiliated with, endorsed
+by, or connected to IBM (whose registered mark AIX names its Unix operating
+system), Google (publisher of the Open Knowledge Format that AI-XF extends), or
+any holder of a similar mark. The name was chosen after a register search on
+27 September 2026; earlier versions were called AIX (to v0.3) and AI-X (v0.4.0
+and v0.4.1), and the validator still reads those spellings.
+
 ## Status
 
 AI-XF v0.4 is a draft designed for backward-compatible growth. Every v0.3 bundle
