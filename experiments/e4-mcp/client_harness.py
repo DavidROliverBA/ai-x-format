@@ -47,7 +47,7 @@ from mcp import Client, StdioServerParameters
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
 SERVER_PATH = HERE / "server.py"
-DEFAULT_FEDERATION = REPO_ROOT / "experiments" / "fixtures" / "federation.ai-x.yaml"
+DEFAULT_FEDERATION = REPO_ROOT / "experiments" / "fixtures" / "federation.ai-xf.yaml"
 DEFAULT_QUESTIONS = REPO_ROOT / "experiments" / "fixtures" / "questions.yaml"
 RESULTS_MD = HERE / "e4-results.md"
 
@@ -55,7 +55,7 @@ MODEL_ID = "claude-sonnet-4-5"
 MAX_TOOL_CALLS = 8
 
 SYSTEM_PROMPT = """\
-You are answering questions about a federation of AI-X knowledge bundles, served to you
+You are answering questions about a federation of AI-XF knowledge bundles, served to you
 through four MCP tools: list_bundles, list_concepts, search, and get.
 
 Two of the bundles deliberately share bare concept ids (e.g. both a "data-eng" bundle and

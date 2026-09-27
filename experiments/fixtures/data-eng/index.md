@@ -1,6 +1,6 @@
 # Data Engineering Bundle
 
-Fixture bundle for AI-X federation experiments. The data engineering team's
+Fixture bundle for AI-XF federation experiments. The data engineering team's
 view of the orders and customers data, the event stream payment service v2
 consumes, and the retention policy governing both tables. Deliberately shares
 two ids (`orders-table`, `customers`) with other bundles in the federation.

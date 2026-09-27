@@ -5,7 +5,7 @@ experiments/e5-transports/compare.py
 Frontmatter-aware, key-by-key diff for E5 (trust survival through
 transports) — MyVault plan `docs/plans/2026-09-26-federation-experiments-
 plan.md`, E5. Self-contained: only reads from the two directories given on
-the command line, never touches `examples/`, `tools/ai-x-validate.py`, or
+the command line, never touches `examples/`, `tools/ai-xf-validate.py`, or
 other `experiments/*` directories.
 
 Two things are measured for every file that exists at the same relative
@@ -31,8 +31,8 @@ PyYAML is used if importable (`uv run --with pyyaml python3 compare.py ...`)
 for accurate semantic equality, in particular for the date/datetime
 normalisation that YAML's implicit timestamp resolution triggers. Without
 PyYAML, a minimal fallback parser (same spirit as, but independent of,
-tools/ai-x-validate.py's) is used; it is deliberately simple and only needs
-to be right for the flat/1-nested-level/list-of-maps shapes AI-X frontmatter
+tools/ai-xf-validate.py's) is used; it is deliberately simple and only needs
+to be right for the flat/1-nested-level/list-of-maps shapes AI-XF frontmatter
 actually uses.
 
 Usage:
@@ -87,8 +87,8 @@ def _coerce(v: str):
 
 def _mini_yaml(text: str):
     """Minimal parser: top-level scalars/lists/maps, one level of nesting,
-    and lists-of-maps (as used by AI-X `generated`, `sources`, `links`, ...).
-    Not a general YAML parser — matches the subset AI-X frontmatter uses."""
+    and lists-of-maps (as used by AI-XF `generated`, `sources`, `links`, ...).
+    Not a general YAML parser — matches the subset AI-XF frontmatter uses."""
     root: dict = {}
     lines = [ln.rstrip("\n") for ln in text.split("\n")]
     i, n = 0, len(lines)

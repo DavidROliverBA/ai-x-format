@@ -2,7 +2,7 @@
 """
 experiments/e6-oci/make-bundle.py
 
-Build a deterministic tar.gz of an AI-X bundle directory for pushing as a
+Build a deterministic tar.gz of an AI-XF bundle directory for pushing as a
 single OCI artifact layer (E6, plan docs/plans/2026-09-26-federation-experiments-plan.md).
 
 Determinism rules (so the same bundle content always produces the same

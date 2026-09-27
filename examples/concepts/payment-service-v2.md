@@ -17,7 +17,7 @@ sources:
     resource: https://internal.example.com/designs/payment-v2-hld
     title: Payment v2 high-level design
 
-# AI-X additions
+# AI-XF additions
 provenance:
   confidence: medium
   source: primary

@@ -16,15 +16,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-export E1_WORK="${E1_WORK:-/tmp/ai-x-e1}"
-VALIDATOR="$REPO_ROOT/tools/ai-x-validate.py"
+export E1_WORK="${E1_WORK:-/tmp/ai-xf-e1}"
+VALIDATOR="$REPO_ROOT/tools/ai-xf-validate.py"
 
 echo "############################################"
 echo "# E1 — transport and the root manifest"
 echo "############################################"
 
 echo
-echo "--- 0. Does ai-x-validate.py support --federation yet? ---"
+echo "--- 0. Does ai-xf-validate.py support --federation yet? ---"
 FED_AVAILABLE=1
 if ! python3 "$VALIDATOR" --help 2>&1 | grep -q -- "--federation"; then
   FED_AVAILABLE=0
@@ -55,7 +55,7 @@ mkdir -p "$E1_WORK/results"
 # Bash 3.2 on macOS has no associative arrays, so this is three parallel
 # lists, joined by index.
 CONSUMERS=(consumer-a consumer-b consumer-c)
-FED_FILES=(federation.ai-x.yaml discovered.yaml federation.ai-x.yaml)
+FED_FILES=(federation.ai-xf.yaml discovered.yaml federation.ai-xf.yaml)
 
 run_validator() {
   # run_validator <bundle-dir> <federation-file> <out-json>

@@ -1,15 +1,15 @@
-# AI-X — AI eXchange Format
+# AI-XF — AI eXchange Format
 
 **Version:** 0.4
 **Status:** Draft
 **Date:** 2026-09-26
 **Supersedes:** v0.3 (2026-09-21)
 
-AI-X is an open, vendor-neutral format for representing curated knowledge so that
+AI-XF is an open, vendor-neutral format for representing curated knowledge so that
 humans and AI agents can produce and consume it without a translation layer. It
 is a **strict superset of the Open Knowledge Format (OKF) v0.2**: every
-conformant AI-X bundle is also a conformant OKF bundle, so AI-X content degrades
-gracefully to OKF-only consumers while AI-X-aware consumers get a richer model —
+conformant AI-XF bundle is also a conformant OKF bundle, so AI-XF content degrades
+gracefully to OKF-only consumers while AI-XF-aware consumers get a richer model —
 **stable identity, typed relationships, provenance, media identity,
 federation, and change semantics**.
 
@@ -18,12 +18,12 @@ federation, and change semantics**.
 
 ---
 
-## 1. Why AI-X exists
+## 1. Why AI-XF exists
 
 OKF proved that a directory of markdown files with YAML frontmatter is enough to
 make knowledge portable. OKF v0.2 (2026-07-25) added trust and lifecycle
 signals — `sources`, `generated`, `verified`, `status`, `stale_after` — which
-closed one of the three gaps AI-X v0.1 identified. Two gaps remain open, scale
+closed one of the three gaps AI-XF v0.1 identified. Two gaps remain open, scale
 has exposed two more, and use has exposed a fifth:
 
 1. **Stable identity.** OKF makes the file path the identity of a concept. Move
@@ -45,7 +45,7 @@ has exposed two more, and use has exposed a fifth:
    existing concepts, and a format that cannot express that change cannot show
    whether it is happening.
 
-AI-X adds exactly these capabilities and nothing else load-bearing. It stays
+AI-XF adds exactly these capabilities and nothing else load-bearing. It stays
 "just markdown + YAML + files": readable without tooling, diffable in version
 control, parseable without a bespoke SDK, portable across tools and time.
 
@@ -53,28 +53,28 @@ control, parseable without a bespoke SDK, portable across tools and time.
 
 ## 2. Relationship to OKF (the compatibility contract)
 
-AI-X v0.3 is defined as a superset of **OKF v0.2**. The contract is:
+AI-XF v0.3 is defined as a superset of **OKF v0.2**. The contract is:
 
-- **Every AI-X concept file MUST be a valid OKF concept file** — parseable YAML
+- **Every AI-XF concept file MUST be a valid OKF concept file** — parseable YAML
   frontmatter with a non-empty `type` field.
-- **AI-X adopts OKF v0.2's trust and lifecycle fields as-is** (`sources`,
+- **AI-XF adopts OKF v0.2's trust and lifecycle fields as-is** (`sources`,
   `generated`, `verified`, `status`, `stale_after`), including their value
-  vocabularies, the actor convention, and per-claim footnote attribution. AI-X
+  vocabularies, the actor convention, and per-claim footnote attribution. AI-XF
   does not redefine them; it builds on them (§7).
-- **All AI-X-specific data lives in frontmatter keys or an inline link
+- **All AI-XF-specific data lives in frontmatter keys or an inline link
   convention that OKF consumers preserve or ignore.** OKF's conformance rules
   require consumers to preserve unknown keys and tolerate unknown content, so
-  AI-X extensions never break an OKF reader.
-- **AI-X producers MUST also emit plain markdown body links** for every typed
+  AI-XF extensions never break an OKF reader.
+- **AI-XF producers MUST also emit plain markdown body links** for every typed
   relationship (see §6.4). This guarantees an OKF-only consumer still sees the
   graph edge, even though it cannot see the edge's *type*.
 
 The result: **publish once, consumed by both.** An OKF agent sees a valid OKF
-bundle. An AI-X agent sees the same bundle plus identity, edge types, richer
+bundle. An AI-XF agent sees the same bundle plus identity, edge types, richer
 provenance, media identity, federation, and change semantics.
 
 Bundles authored against OKF v0.1 conventions (a `timestamp` field; a body
-`# Citations` list) remain valid AI-X input. Consumers MUST tolerate both
+`# Citations` list) remain valid AI-XF input. Consumers MUST tolerate both
 generations; producers SHOULD migrate to the v0.2 forms (`generated.at`,
 `sources`).
 
@@ -82,12 +82,12 @@ generations; producers SHOULD migrate to the v0.2 forms (`generated.at`,
 
 ## 3. Bundle structure
 
-An AI-X **bundle** is a directory tree of markdown **concept** files plus
+An AI-XF **bundle** is a directory tree of markdown **concept** files plus
 optional reserved files.
 
 ```
 my-bundle/
-├── manifest.ai-x.yaml        # optional bundle manifest (AI-X)
+├── manifest.ai-xf.yaml        # optional bundle manifest (AI-XF)
 ├── index.md                 # optional navigation (OKF reserved)
 ├── log.md                   # optional changelog (OKF reserved)
 ├── concepts/
@@ -100,7 +100,7 @@ my-bundle/
 
 - Any `.md` file that is **not** a reserved filename is a **concept**.
 - Reserved filenames are `index.md`, `log.md` (inherited from OKF) and, at the
-  bundle root only, `manifest.ai-x.yaml` (AI-X). Reserved files are never
+  bundle root only, `manifest.ai-xf.yaml` (AI-XF). Reserved files are never
   concepts.
 - Directory structure is **producer-determined**. Paths carry no mandated
   meaning; grouping is for human navigation only. (Identity comes from `id`, not
@@ -136,7 +136,7 @@ sources:
     resource: https://internal.example.com/runbooks/payments
     title: Payments runbook
 
-# AI-X additions
+# AI-XF additions
 provenance:
   confidence: high
   source: primary
@@ -165,7 +165,7 @@ Capture is synchronous.[^payments-runbook]
 
 Note that the two links in the body mirror the two typed `links` entries — that
 is the OKF-compatibility rule from §2. The footnote label is a `sources[].id`:
-OKF v0.2's per-claim attribution, which AI-X inherits unchanged (§7.4).
+OKF v0.2's per-claim attribution, which AI-XF inherits unchanged (§7.4).
 
 ---
 
@@ -179,7 +179,7 @@ OKF v0.2's per-claim attribution, which AI-X inherits unchanged (§7.4).
 
 `type` is the only field required for **OKF Level 0** conformance (see §11).
 
-### 5.2 Identity (AI-X)
+### 5.2 Identity (AI-XF)
 
 | Field | Type   | Rule   | Meaning |
 |-------|--------|--------|---------|
@@ -190,7 +190,7 @@ OKF v0.2's per-claim attribution, which AI-X inherits unchanged (§7.4).
 - `id` values MUST be unique within a bundle.
 - `id` is the **preferred link target** (§6). Because identity is decoupled from
   path, files can be reorganised without breaking references — the defining fix
-  AI-X makes over OKF.
+  AI-XF makes over OKF.
 - `id` values MUST NOT contain `/`. The `/` character is reserved for
   federation-qualified references (§9).
 
@@ -209,7 +209,7 @@ OKF v0.2's per-claim attribution, which AI-X inherits unchanged (§7.4).
 | `stale_after` | ISO 8601 date | Absolute date after which the content SHOULD be treated as stale (OKF v0.2). |
 | `timestamp` | ISO 8601 datetime | **Deprecated** (OKF v0.1). Read as a fallback for `generated.at`; do not emit in new bundles. |
 
-### 5.4 Recommended (AI-X additions)
+### 5.4 Recommended (AI-XF additions)
 
 | Field | Type | Meaning |
 |-------|------|---------|
@@ -248,7 +248,7 @@ A link asserts a **directed** edge from the containing concept to `to`.
 
 ### 6.2 Relationship vocabulary
 
-AI-X defines a **core vocabulary** of `rel` values with defined inverses.
+AI-XF defines a **core vocabulary** of `rel` values with defined inverses.
 Producers SHOULD use a core value where one fits, and MAY introduce custom
 `rel` values (any lowercase kebab-case string) where none does. Consumers MUST
 treat an unknown `rel` as a generic `relates-to` edge rather than rejecting it.
@@ -292,7 +292,7 @@ For every entry in `links` whose target is **inside the same bundle**, the
 producer MUST also emit at least one **plain markdown link** to the same target
 somewhere in the document body. This ensures OKF-only consumers — which read
 only body links and know nothing of `links` — still discover the (untyped)
-edge. AI-X-aware consumers read `links` for the typed edge and MAY ignore the
+edge. AI-XF-aware consumers read `links` for the typed edge and MAY ignore the
 redundant body link.
 
 Federation-qualified links (§9) SHOULD be mirrored where a resolvable URI for
@@ -376,8 +376,8 @@ deprecated concept with no successor edge is simply retired; that is valid.
 ## 7. Provenance and trust
 
 v0.1 defined a self-contained `provenance` map. OKF v0.2 then standardised
-overlapping trust fields. AI-X v0.2 resolves the overlap in one direction:
-**where OKF now defines a field, OKF's definition wins.** The AI-X `provenance`
+overlapping trust fields. AI-XF v0.2 resolves the overlap in one direction:
+**where OKF now defines a field, OKF's definition wins.** The AI-XF `provenance`
 map shrinks to carry only what OKF still lacks.
 
 ### 7.1 The shared base (OKF v0.2, adopted as-is)
@@ -390,7 +390,7 @@ map shrinks to carry only what OKF still lacks.
 | `status` | Lifecycle state: `draft`, `stable` (the default when absent) or `deprecated`. |
 | `stale_after` | Absolute staleness date. Staleness is a plain date comparison, not a calculation. |
 
-### 7.2 The AI-X `provenance` map (what OKF lacks)
+### 7.2 The AI-XF `provenance` map (what OKF lacks)
 
 | Key | Values | Meaning |
 |-----|--------|---------|
@@ -400,7 +400,7 @@ map shrinks to carry only what OKF still lacks.
 Producers MAY add custom provenance keys; consumers MUST preserve them.
 
 `confidence` is an **asserted** signal, and asserted signals drift: in the vault
-AI-X was extracted from, 303 of 413 labelled notes claimed `high` and 10 claimed
+AI-XF was extracted from, 303 of 413 labelled notes claimed `high` and 10 claimed
 `low`, at which point the label no longer discriminates. OKF declines to store a
 credibility score for the same reason. Consumers SHOULD therefore rank on
 *derived* signals first — trust tier, `stale_after`, `supports` and open
@@ -420,10 +420,10 @@ reports it and flags a lopsided one.
 Consumers MUST tolerate both generations. Validators SHOULD warn on the
 deprecated forms without failing the bundle.
 
-AI-X v0.2's own examples also drifted from OKF in three spellings. v0.3 corrects
+AI-XF v0.2's own examples also drifted from OKF in three spellings. v0.3 corrects
 them; consumers MUST still read the old forms, and validators SHOULD warn:
 
-| AI-X v0.2 spelling | Correct OKF v0.2 form |
+| AI-XF v0.2 spelling | Correct OKF v0.2 form |
 |-------------------|-----------------------|
 | `status: active` | `status: stable` |
 | `sources[].uri` | `sources[].resource` |
@@ -458,7 +458,7 @@ Capture is synchronous.[^payments-runbook]
 [^payments-runbook]: Payments runbook
 ```
 
-AI-X inherits this unchanged and adds one recommendation: concepts whose content
+AI-XF inherits this unchanged and adds one recommendation: concepts whose content
 an agent may rewrite SHOULD cite per claim, not only per concept. Each rewrite
 is a paraphrase, and paraphrase compounds error as readily as insight; a claim
 that still points at its source can be re-checked, and a page of such claims can
@@ -484,7 +484,7 @@ sources:
 - Consumers deriving trust SHOULD surface the count; a concept with withheld
   sources is not less verified, but its provenance is declared incomplete.
 - This closes only the field; a source named in prose has already been
-  disclosed. Proposed in OKF issue #32; AI-X adopts it, which narrows §12: the
+  disclosed. Proposed in OKF issue #32; AI-XF adopts it, which narrows §12: the
   format now has one word for redaction, and the policy of *what* to withhold
   stays the producer's.
 
@@ -514,7 +514,7 @@ Each entry in a concept's `media` list is a map:
 | `hash` | string | SHOULD | Content hash in `<algo>:<hex>` form (e.g. `sha256:…`). The hash — not the URI — is the asset's identity: stable across moves, hosts and renames, and deduplicable across bundles. |
 | `title` | string | MAY | Human-readable label. |
 | `describes` | string | MAY | The `id` (or `namespace/id`) of the concept the asset is about, when it is not the containing concept. |
-| `embedding` | string (URI) | MAY | Pointer to a stored embedding of the asset's content — the hook a multimodal retrieval layer hangs off. AI-X does not prescribe the embedding model or store. |
+| `embedding` | string (URI) | MAY | Pointer to a stored embedding of the asset's content — the hook a multimodal retrieval layer hangs off. AI-XF does not prescribe the embedding model or store. |
 
 Rules:
 
@@ -563,7 +563,7 @@ links:
   note called `customers`. Authoring tools MAY offer wikilinks in the editor
   but MUST compile them to ids or paths before publishing.
 
-**Explicit form (v0.4).** `ai-x://<namespace>/<id>` is an equivalent spelling of
+**Explicit form (v0.4).** `ai-xf://<namespace>/<id>` is an equivalent spelling of
 the qualified reference, for use where a bare `namespace/id` would be read as a
 path: markdown body links, authoring tools, URLs in MCP payloads. Consumers MUST
 accept both spellings everywhere a `to` value or body link is read, and a body
@@ -571,7 +571,7 @@ link in the explicit form satisfies the mirroring rule (§6.4) for the matching
 typed link.
 
 ```markdown
-See the [orders event stream](ai-x://data-eng/orders-events).
+See the [orders event stream](ai-xf://data-eng/orders-events).
 ```
 
 **Resolution of unqualified references in a federation (v0.4).** A consumer
@@ -605,13 +605,13 @@ vocabularies:
   rels: https://example.com/federation/rels-v2.json
 ```
 
-AI-X does not prescribe the document format beyond: a flat list of permitted
+AI-XF does not prescribe the document format beyond: a flat list of permitted
 values with one-line definitions. A dozen types and a dozen rels is very nearly
 the entire cross-team agreement.
 
 ### 9.4 Trust across bundles
 
-Because AI-X adopts OKF v0.2's `generated`/`verified` semantics unchanged (§7.1),
+Because AI-XF adopts OKF v0.2's `generated`/`verified` semantics unchanged (§7.1),
 trust tiers mean the same thing in every bundle of a federation. A consumer
 reading five teams' bundles can prefer a human-verified concept over an
 unverified one while knowing nothing about the five teams. Producers MUST NOT
@@ -619,11 +619,11 @@ redefine the actor-prefix convention within a federation.
 
 ### 9.5 The federation manifest (new in v0.4)
 
-A consumer that holds several bundles SHOULD keep a `federation.ai-x.yaml`
+A consumer that holds several bundles SHOULD keep a `federation.ai-xf.yaml`
 describing what it holds and where each bundle came from:
 
 ```yaml
-ai-x: "0.4"
+ai-xf: "0.4"
 federation: example-federation
 vocabularies:                       # federation-wide (§9.3); bundles MAY override
   types: ./vocab/types-v1.json
@@ -631,7 +631,7 @@ vocabularies:                       # federation-wide (§9.3); bundles MAY overr
 bundles:
   - namespace: example-payments
     source: git
-    repo: https://github.com/DavidROliverBA/ai-x-format
+    repo: https://github.com/DavidROliverBA/ai-xf-format
     ref: 1408535                     # the exact commit held
     subdir: examples                 # bundle root, relative to the repo root
   - namespace: data-eng
@@ -643,31 +643,31 @@ bundles:
     digest: sha256:9308e291b9057189c894f1d36d7f93424f08364c556603854c3cdb5b673976df
 ```
 
-- `namespace` MUST equal the `namespace` in the bundle's own `manifest.ai-x.yaml`.
+- `namespace` MUST equal the `namespace` in the bundle's own `manifest.ai-xf.yaml`.
 - `source: oci` names a bundle distributed as an OCI artifact (Appendix C).
   `digest` is the artifact's manifest digest and is the provenance field, as
-  `ref` is for git. A bundle's own `manifest.ai-x.yaml` MUST NOT carry its own
+  `ref` is for git. A bundle's own `manifest.ai-xf.yaml` MUST NOT carry its own
   digest: the manifest is inside the hashed content, so writing the digest
   there changes it. The digest lives in the document that references the
   bundle, exactly as OCI keeps signatures outside the artifact they sign.
 - `subdir` (git sources) is the bundle root relative to the root of the
   repository that holds it; `path` (path sources) is relative to the federation
-  manifest. Both point at the directory containing `manifest.ai-x.yaml`.
+  manifest. Both point at the directory containing `manifest.ai-xf.yaml`.
 - Two entries MUST NOT share a `namespace`.
 - `ref` and `digest` are strings. Quote a short git SHA that happens to be all
   digits (`ref: "1408535"`), or a YAML parser will read it as a number.
 
 **What the manifest is for.** Experiment E1 showed that a consumer can resolve
 every cross-bundle reference *without* a federation manifest: each bundle's own
-`manifest.ai-x.yaml` travels with it, so a scan of the tree recovers every
+`manifest.ai-xf.yaml` travels with it, so a scan of the tree recovers every
 namespace. What a scan cannot recover is **provenance**: which commit of each
 bundle is held. So the rule is: consumers MAY discover bundle roots by scanning
-for `manifest.ai-x.yaml`; a consumer that claims reproducible provenance MUST
+for `manifest.ai-xf.yaml`; a consumer that claims reproducible provenance MUST
 hold a federation manifest (or an equivalent from which one can be generated,
 such as git's `.gitmodules` plus submodule commits) with a `ref` per bundle.
 
 A git repository whose bundles are submodules already carries this information;
-a tool MAY generate `federation.ai-x.yaml` from `.gitmodules` and
+a tool MAY generate `federation.ai-xf.yaml` from `.gitmodules` and
 `git submodule status`, and E1 did so.
 
 ### 9.6 Importing a concept from another bundle (new in v0.4)
@@ -689,7 +689,7 @@ links:
   *the copy*. A consumer that wants the source's trust follows the link.
 - The copy SHOULD carry the source's `stale_after` or an earlier date, never a
   later one.
-- This is the answer AI-X gives to OKF issue #15.
+- This is the answer AI-XF gives to OKF issue #15.
 
 ### 9.7 Indexing a federation (non-normative, v0.4)
 
@@ -735,8 +735,8 @@ claim of this section.
 - Date headings use `YYYY-MM-DD`. Entries are prose, optionally prefixed
   (`**Creation**`, `**Update**`, …).
 
-**AI-X log vocabulary (new in v0.3).** OKF leaves the leading bold word as a
-convention. AI-X fixes a small vocabulary for it, so that a bundle can report its
+**AI-XF log vocabulary (new in v0.3).** OKF leaves the leading bold word as a
+convention. AI-XF fixes a small vocabulary for it, so that a bundle can report its
 own curation activity without reference to version control. The log remains a
 valid OKF log.
 
@@ -762,25 +762,25 @@ accumulating. Entries with an unknown leading word are valid and uncounted.
 by a tool, the reserved files at any directory shared by more than one part
 (the bundle root above all) belong to the *merging* producer, not to any part.
 `log.md` is **read-then-add, never regenerate**: a merge MUST carry forward
-every existing entry and append its own. `manifest.ai-x.yaml` and a root
+every existing entry and append its own. `manifest.ai-xf.yaml` and a root
 `index.md` MUST preserve any existing version keys and hand-written text. A
 merge that regenerates the root log silently discards every `Resolution`,
 `Merge` and `Deprecation` it recorded, and a conformance check of the file's
 *shape* will not notice. This is the rule the OKF community converged on in
-issue #26; AI-X needs it more, because its log vocabulary carries decisions.
+issue #26; AI-XF needs it more, because its log vocabulary carries decisions.
 
-### 10.3 `manifest.ai-x.yaml` (AI-X, optional)
+### 10.3 `manifest.ai-xf.yaml` (AI-XF, optional)
 
 A single YAML file at the **bundle root** describing the bundle as a whole. It
 is not a concept and does not affect OKF conformance (OKF ignores non-`.md`
 files). Recommended keys:
 
 ```yaml
-ai-x: "0.3"                     # spec version this bundle targets
+ai-xf: "0.3"                     # spec version this bundle targets
 name: my-bundle                # bundle identifier
 namespace: my-bundle           # federation namespace (§9) — required at Level 3
 description: One-line summary of the bundle.
-producer: ai-x-export/1.0       # tool or person that generated it
+producer: ai-xf-export/1.0       # tool or person that generated it
 generated: 2026-08-20T09:12:00Z
 conformance: 2                 # highest level the producer claims (§11)
 vocabularies:                  # shared vocabulary pointers (§9.3)
@@ -798,15 +798,15 @@ NOT.
 
 ## 11. Conformance levels
 
-AI-X defines a ladder so producers can adopt incrementally. A bundle's level is
+AI-XF defines a ladder so producers can adopt incrementally. A bundle's level is
 the highest it fully satisfies.
 
 | Level | Name | Requirements |
 |-------|------|--------------|
 | **0** | OKF-compatible | Valid OKF bundle: every non-reserved `.md` has parseable frontmatter with a non-empty `type`; reserved files follow their structures. |
-| **1** | AI-X Core | Level 0, **plus** every concept has a unique `id`, **plus** a root `manifest.ai-x.yaml` declaring `ai-x` and `name`. |
-| **2** | AI-X Full | Level 1, **plus** every `links` entry uses a valid link object (`rel` + resolvable `to`) and same-bundle links are mirrored by a body link (§6.4), **plus** every concept carries trust signals — a `provenance` map (§7.2) or at least one OKF v0.2 trust field (§7.1), **plus** every `media` entry (if any) carries a `uri`, **plus** any link `state` is `open` or `resolved` and any `resolved` map carries `by` (§6.5). |
-| **3** | AI-X Federated | Level 2, **plus** the manifest declares a valid `namespace`, **plus** every cross-bundle reference is federation-qualified (§9.2), **plus** the manifest declares `vocabularies` (§9.3). |
+| **1** | AI-XF Core | Level 0, **plus** every concept has a unique `id`, **plus** a root `manifest.ai-xf.yaml` declaring `ai-xf` and `name`. |
+| **2** | AI-XF Full | Level 1, **plus** every `links` entry uses a valid link object (`rel` + resolvable `to`) and same-bundle links are mirrored by a body link (§6.4), **plus** every concept carries trust signals — a `provenance` map (§7.2) or at least one OKF v0.2 trust field (§7.1), **plus** every `media` entry (if any) carries a `uri`, **plus** any link `state` is `open` or `resolved` and any `resolved` map carries `by` (§6.5). |
+| **3** | AI-XF Federated | Level 2, **plus** the manifest declares a valid `namespace`, **plus** every cross-bundle reference is federation-qualified (§9.2), **plus** the manifest declares `vocabularies` (§9.3). |
 
 ### 11.1 Consumer obligations (all levels)
 
@@ -814,7 +814,7 @@ A conformant consumer:
 
 - MUST NOT reject a bundle for: missing optional fields, unknown `type` values,
   unknown frontmatter keys, unknown `rel` values, broken links, unresolvable
-  qualified references, or a missing `index.md`/`manifest.ai-x.yaml`.
+  qualified references, or a missing `index.md`/`manifest.ai-xf.yaml`.
 - MUST treat a broken link as tolerable — it MAY denote not-yet-written
   knowledge or a bundle the consumer does not hold.
 - SHOULD resolve link targets by `id` first, then by bundle-relative path;
@@ -826,19 +826,19 @@ A conformant consumer:
   `state` on any other rel (§6.5).
 - SHOULD surface the successor of a deprecated concept (§6.6), guarding against
   cycles.
-- MUST accept `ai-x://namespace/id` wherever `namespace/id` is accepted, and MUST
+- MUST accept `ai-xf://namespace/id` wherever `namespace/id` is accepted, and MUST
   warn, never stay silent, when it resolves an unqualified reference across a
   bundle boundary (§9.2).
 - MUST NOT treat an `imported` copy as carrying its source's trust tier (§9.6).
 
-This permissive model is what keeps AI-X useful while bundles evolve and agents
+This permissive model is what keeps AI-XF useful while bundles evolve and agents
 generate content.
 
 ---
 
 ## 12. Scope: a format, not a policy
 
-AI-X can record that a contradiction is open; it cannot make a curator record
+AI-XF can record that a contradiction is open; it cannot make a curator record
 one. The discipline that makes a bundle compound — search before writing, keep
 evidence apart from synthesis, queue disagreements for a human, gate destructive
 changes — is **policy**, and lives outside this spec. A non-normative reference
@@ -848,9 +848,9 @@ policy, written to be pasted into an agent's instructions, ships alongside it as
 Likewise for sharing, with one exception: §7.6 gives the format a single word,
 `withheld`, for the fact that something was redacted, because a list that is
 silently shorter misleads every consumer. What to withhold remains policy.
-AI-X defines a *format*, not a policy. Content sensitivity, redaction, and
+AI-XF defines a *format*, not a policy. Content sensitivity, redaction, and
 outbound-sharing rules are the **producer's** responsibility and out of scope
-for this spec. Producers exporting into AI-X for external exchange SHOULD apply
+for this spec. Producers exporting into AI-XF for external exchange SHOULD apply
 their own sanitisation before publishing a bundle — and SHOULD remember that
 `media` assets and `sources` URIs leak context just as body prose does.
 
@@ -858,9 +858,19 @@ their own sanitisation before publishing a bundle — and SHOULD remember that
 
 ## 13. Versioning
 
-Bundles declare the version they target via `manifest.ai-x.yaml`'s `ai-x` key.
+Bundles declare the version they target via `manifest.ai-xf.yaml`'s `ai-xf` key.
 Minor versions remain readable by earlier consumers under the permissive rules
 of §11.1.
+
+### Changelog — v0.4.2 (2026-09-27)
+
+**Renamed again: AI-X is now AI-XF.** The two-letter tail "XF" reads as
+"eXchange Format", the name is more distinctive than "AI-X" (which collides
+with a great many unrelated products in search), and it keeps the hyphen that
+separates it from IBM's AIX. Identifiers follow: `manifest.ai-xf.yaml`,
+`ai-xf:`, `ai-xf://`, `federation.ai-xf.yaml`, `tools/ai-xf-validate.py`,
+`application/vnd.ai-xf.*`, repository `ai-xf-format`. The validator reads all
+three spellings (AIX, AI-X, AI-XF) and warns on the older two. No other change.
 
 ### Changelog — v0.4.1 (2026-09-26)
 
@@ -873,11 +883,11 @@ Found by federating two real bundles (`experiments/real-federation/`, E7).
 
 ### Changelog — v0.4 (2026-09-26)
 
-**Renamed: AIX is now AI-X.** In prose and in every identifier: the manifest
-is `manifest.ai-x.yaml`, its version key is `ai-x:`, the explicit reference
-scheme is `ai-x://`, the federation manifest is `federation.ai-x.yaml`, the
-validator is `tools/ai-x-validate.py`, the OCI artifact type is
-`application/vnd.ai-x.bundle.v1`, and the repository is `ai-x-format`. "AIX"
+**Renamed: AIX is now AI-XF.** In prose and in every identifier: the manifest
+is `manifest.ai-xf.yaml`, its version key is `ai-x:`, the explicit reference
+scheme is `ai-xf://`, the federation manifest is `federation.ai-xf.yaml`, the
+validator is `tools/ai-xf-validate.py`, the OCI artifact type is
+`application/vnd.ai-xf.bundle.v1`, and the repository is `ai-xf-format`. "AIX"
 is a registered trademark of IBM for its operating system; the hyphenated name
 avoids the clash and reads as what it is, an AI eXchange format. Consumers MUST
 still read the old spellings; the reference validator does, with a warning.
@@ -889,11 +899,11 @@ Theme: federation with evidence. Every addition below was tested in
 
 **Added:**
 
-- `ai-x://<namespace>/<id>` explicit reference form, accepted everywhere a
+- `ai-xf://<namespace>/<id>` explicit reference form, accepted everywhere a
   qualified reference is, including body links for §6.4 mirroring (§9.2).
 - Resolution rule for unqualified references across held bundles: own bundle
   first, then alphabetical by namespace, always with a warning (§9.2). E2.
-- `federation.ai-x.yaml`: the consumer's manifest of held bundles with a `ref`
+- `federation.ai-xf.yaml`: the consumer's manifest of held bundles with a `ref`
   per bundle; required for provenance, not for resolution (§9.5). E1.
 - `source: oci` entries with a `digest` in the federation manifest; no digest
   on a bundle's own manifest (§9.5). Appendix C on OCI distribution: one
@@ -937,7 +947,7 @@ Theme: federation with evidence. Every addition below was tested in
 
 Theme: v0.1 and v0.2 describe knowledge at rest. v0.3 describes it changing.
 
-**Corrected** (AI-X v0.2 deviated from the OKF v0.2 it claimed to adopt — §7.3):
+**Corrected** (AI-XF v0.2 deviated from the OKF v0.2 it claimed to adopt — §7.3):
 
 - `status` values are OKF's `draft | stable | deprecated`; `active` was wrong.
 - `sources` entries use `resource`, not `uri`.
@@ -990,7 +1000,7 @@ and the conformance ladder. Every v0.2 bundle is a valid v0.3 bundle.
 - `describes` / `described-by` added to the core relationship vocabulary;
   `depicts`, `remediates`, `discusses` registered as recommended extension
   rels (§6.2).
-- Conformance **Level 3 — AI-X Federated** (§11).
+- Conformance **Level 3 — AI-XF Federated** (§11).
 - `id` values MUST NOT contain `/` (reserved for qualified references).
 
 **Unchanged:**
@@ -1001,7 +1011,7 @@ and the conformance ladder. Every v0.2 bundle is a valid v0.3 bundle.
 ### v0.1 (2026-07-18)
 
 Initial draft: stable `id`, typed `links` with inverse inference and body-link
-mirroring, self-contained `provenance` map, `manifest.ai-x.yaml`, conformance
+mirroring, self-contained `provenance` map, `manifest.ai-xf.yaml`, conformance
 Levels 0–2.
 
 ---
@@ -1021,7 +1031,7 @@ Body is free-form.
 ## Appendix B — full concept (Level 2+)
 
 See the worked bundle in [`examples/`](./examples/) — the bundle passes the
-reference validator in [`tools/ai-x-validate.py`](./tools/ai-x-validate.py) at
+reference validator in [`tools/ai-xf-validate.py`](./tools/ai-xf-validate.py) at
 Level 3 and demonstrates OKF v0.2 trust fields, media identity, a
 federation-qualified link, per-claim attribution, an open contradiction
 between two claims, and a merge tombstone.
@@ -1036,11 +1046,11 @@ tag failed verification while the original stayed verifiable by digest.
 - **Layer:** one `tar+gzip` of the bundle directory, built deterministically
   (sorted entries, `mtime` 0, uid/gid 0), so the layer digest depends only on
   content.
-- **Types:** `artifactType: application/vnd.ai-x.bundle.v1`; layer
-  `mediaType: application/vnd.ai-x.bundle.layer.v1+tar+gzip`. Keep them
+- **Types:** `artifactType: application/vnd.ai-xf.bundle.v1`; layer
+  `mediaType: application/vnd.ai-xf.bundle.layer.v1+tar+gzip`. Keep them
   distinct, as the OCI artifact guidance and the agent-skills OCI draft do.
 - **Annotations:** `org.opencontainers.image.title`, the bundle `name`,
-  `namespace` and `ai-x` version, the source commit, and
+  `namespace` and `ai-xf` version, the source commit, and
   `org.opencontainers.image.created` **pinned to the bundle's `generated`
   timestamp**. Left unpinned, `oras push` stamps the wall clock and the
   manifest digest changes on every push of identical content.
@@ -1048,5 +1058,5 @@ tag failed verification while the original stayed verifiable by digest.
   Consumers verify by digest, not by tag; a tag can be overwritten, a digest
   cannot.
 - **Reference from a federation:** `source: oci` with `ref` and `digest` in
-  `federation.ai-x.yaml` (§9.5).
+  `federation.ai-xf.yaml` (§9.5).
 

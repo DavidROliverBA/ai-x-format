@@ -4,7 +4,7 @@
 # Builds $E1_WORK/consumer-b: the three bundles merged in with
 # `git subtree add --prefix bundles/<ns> <remote> main --squash`, with NO
 # federation manifest checked in. Then attempts naive discovery: scan for
-# manifest.ai-x.yaml files under the merged tree, read each one's own
+# manifest.ai-xf.yaml files under the merged tree, read each one's own
 # `namespace:` field (which subtree-add preserves verbatim, since it copies
 # the whole bundle including its manifest), and write what a consumer with no
 # federation-aware tooling beyond "grep for manifests" could reconstruct to
@@ -17,7 +17,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-E1_WORK="${E1_WORK:-/tmp/ai-x-e1}"
+E1_WORK="${E1_WORK:-/tmp/ai-xf-e1}"
 CONSUMER="$E1_WORK/consumer-b"
 
 # shellcheck source=./lib-subtree.sh
@@ -30,7 +30,7 @@ fi
 
 e1_build_subtree_consumer "$CONSUMER" "Layout B"
 
-echo "-- discovering bundle roots by scanning for manifest.ai-x.yaml (no manifest checked in)"
+echo "-- discovering bundle roots by scanning for manifest.ai-xf.yaml (no manifest checked in)"
 python3 - "$CONSUMER" <<'PY'
 import re
 import sys
@@ -38,7 +38,7 @@ from pathlib import Path
 
 consumer = Path(sys.argv[1])
 bundles = []
-for manifest in sorted(consumer.rglob("manifest.ai-x.yaml")):
+for manifest in sorted(consumer.rglob("manifest.ai-xf.yaml")):
     ns = None
     for line in manifest.read_text(encoding="utf-8").splitlines():
         m = re.match(r"^namespace:\s*(\S+)\s*$", line)

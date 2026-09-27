@@ -1,6 +1,6 @@
 # Household Bundle
 
-Fixture bundle for AI-X federation experiments. A small, fictional domestic
+Fixture bundle for AI-XF federation experiments. A small, fictional domestic
 domain (a home-baking side business, boiler servicing, home insurance
 renewal) with no business relationship to the `payments` or `data-eng`
 bundles. Shares one id (`customers`) with `data-eng` to test that unrelated

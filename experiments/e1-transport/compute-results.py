@@ -9,7 +9,7 @@ $E1_WORK/e1-results.md (also printed to stdout).
 Not meant to be run standalone — run.sh calls this after building all three
 consumers and running the validator against each. Takes two positional args:
   1. E1_WORK directory
-  2. "1" if ai-x-validate.py's --federation flag was available this run, "0"
+  2. "1" if ai-xf-validate.py's --federation flag was available this run, "0"
      if not (in which case M1 is reported as "validator flag pending" and
      everything else still runs).
 """
@@ -26,9 +26,9 @@ FED_AVAILABLE = sys.argv[2] == "1"
 
 CONSUMERS = ["consumer-a", "consumer-b", "consumer-c"]
 LABELS = {
-    "consumer-a": "(a) git submodules, generated federation.ai-x.yaml",
+    "consumer-a": "(a) git submodules, generated federation.ai-xf.yaml",
     "consumer-b": "(b) git subtree, naive discovery (discovered.yaml)",
-    "consumer-c": "(c) git subtree + hand-written federation.ai-x.yaml",
+    "consumer-c": "(c) git subtree + hand-written federation.ai-xf.yaml",
 }
 
 
@@ -126,8 +126,8 @@ m3["consumer-b"] = (
     if b_all_null else "unexpected: some ref was recovered — check discovered.yaml"
 )
 
-# (c) federation.ai-x.yaml ref (git-subtree-split trailer) vs remotes.json
-fed_c_text = (WORK / "consumer-c" / "federation.ai-x.yaml").read_text(encoding="utf-8")
+# (c) federation.ai-xf.yaml ref (git-subtree-split trailer) vs remotes.json
+fed_c_text = (WORK / "consumer-c" / "federation.ai-xf.yaml").read_text(encoding="utf-8")
 c_shas = {}
 current_ns = None
 for line in fed_c_text.splitlines():
@@ -142,7 +142,7 @@ c_matches = all(
     c_shas.get(ns) == remotes[bundle]["head"] for ns, bundle in ns_to_bundle.items()
 )
 m3["consumer-c"] = (
-    f"yes — federation.ai-x.yaml `ref` (from git-subtree-split trailer) matches remotes.json"
+    f"yes — federation.ai-xf.yaml `ref` (from git-subtree-split trailer) matches remotes.json"
     if c_matches else f"MISMATCH — {c_shas} vs {remotes}"
 )
 
@@ -168,7 +168,7 @@ lines.append("for M2 — see note below). Namespaces: `data-eng`, `household`,")
 lines.append("`example-payments`.")
 lines.append("")
 if not FED_AVAILABLE:
-    lines.append("> **`ai-x-validate.py --federation` was not available for this run.** "
+    lines.append("> **`ai-xf-validate.py --federation` was not available for this run.** "
                  "All three consumer layouts were still built; M1 is marked "
                  "\"validator flag pending\" below. Re-run `run.sh` once the flag lands.")
     lines.append("")
@@ -186,10 +186,10 @@ lines.append("- **M2** validates `bundles/payments`, not `bundles/data-eng` — 
 lines.append("  reference under test (`payment-service-v2` → `data-eng/orders-events`) is")
 lines.append("  declared on the payments side, in `examples/concepts/payment-service-v2.md`.")
 lines.append("- **M3(b)** is read directly off `discovered.yaml`'s `ref: null` fields — a naive")
-lines.append("  scan for `manifest.ai-x.yaml` files never inspects git history, so it cannot")
+lines.append("  scan for `manifest.ai-xf.yaml` files never inspects git history, so it cannot")
 lines.append("  recover the pre-squash commit that `git subtree add --squash` swallows.")
 lines.append("- **M3(c)**'s `ref` comes from the squash commit's `git-subtree-split:` trailer")
-lines.append("  (git plumbing, not an AI-X concept) — recoverable, but only by a script or")
+lines.append("  (git plumbing, not an AI-XF concept) — recoverable, but only by a script or")
 lines.append("  human that knows to look for it.")
 lines.append("- **M4** diffs `bundles/` only (as specified); consumer-a's diff additionally")
 lines.append("  covers each submodule's `.git` gitlink file, which is expected to match since")

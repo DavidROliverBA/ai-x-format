@@ -2,32 +2,32 @@
   "_comment": [
     "Two independent config shapes in one file for reference — a real Claude Code",
     "or VS Code config takes only its own top-level key (mcpServers / servers), not both.",
-    "Replace <ABS-PATH-TO-REPO> with the absolute path to this ai-x-format checkout.",
+    "Replace <ABS-PATH-TO-REPO> with the absolute path to this ai-xf-format checkout.",
     "`uv run --with mcp --with pyyaml server.py` is the exact invocation smoke_test.py",
-    "and client_harness.py use; --federation defaults to experiments/fixtures/federation.ai-x.yaml",
+    "and client_harness.py use; --federation defaults to experiments/fixtures/federation.ai-xf.yaml",
     "if omitted, so it can be dropped for the default fixture federation."
   ],
 
   "_claude_code": {
-    "_comment": "`claude mcp add ai-x-federation -- uv run --with mcp --with pyyaml <ABS-PATH-TO-REPO>/experiments/e4-mcp/server.py --federation <ABS-PATH-TO-REPO>/experiments/fixtures/federation.ai-x.yaml` writes this into .claude.json / .mcp.json.",
+    "_comment": "`claude mcp add ai-xf-federation -- uv run --with mcp --with pyyaml <ABS-PATH-TO-REPO>/experiments/e4-mcp/server.py --federation <ABS-PATH-TO-REPO>/experiments/fixtures/federation.ai-xf.yaml` writes this into .claude.json / .mcp.json.",
     "mcpServers": {
-      "ai-x-federation": {
+      "ai-xf-federation": {
         "command": "uv",
         "args": [
           "run",
           "--with", "mcp",
           "--with", "pyyaml",
           "<ABS-PATH-TO-REPO>/experiments/e4-mcp/server.py",
-          "--federation", "<ABS-PATH-TO-REPO>/experiments/fixtures/federation.ai-x.yaml"
+          "--federation", "<ABS-PATH-TO-REPO>/experiments/fixtures/federation.ai-xf.yaml"
         ]
       }
     }
   },
 
   "_vscode_dot_vscode_mcp_json": {
-    "_comment": "Save as .vscode/mcp.json in a workspace opened at the repo root; VS Code's MCP support reads relative paths against the workspace, so ${workspaceFolder} substitutes for <ABS-PATH-TO-REPO>. Resources (ai-x://<namespace>/<id>) are what the VS Code side-test (E4 measure 3) exercises manually.",
+    "_comment": "Save as .vscode/mcp.json in a workspace opened at the repo root; VS Code's MCP support reads relative paths against the workspace, so ${workspaceFolder} substitutes for <ABS-PATH-TO-REPO>. Resources (ai-xf://<namespace>/<id>) are what the VS Code side-test (E4 measure 3) exercises manually.",
     "servers": {
-      "ai-x-federation": {
+      "ai-xf-federation": {
         "type": "stdio",
         "command": "uv",
         "args": [
@@ -35,7 +35,7 @@
           "--with", "mcp",
           "--with", "pyyaml",
           "${workspaceFolder}/experiments/e4-mcp/server.py",
-          "--federation", "${workspaceFolder}/experiments/fixtures/federation.ai-x.yaml"
+          "--federation", "${workspaceFolder}/experiments/fixtures/federation.ai-xf.yaml"
         ]
       }
     }

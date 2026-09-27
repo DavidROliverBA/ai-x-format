@@ -1,4 +1,4 @@
-ai-x: "0.4"
+ai-xf: "0.4"
 name: bundle-c
 namespace: c
 description: E2 fixture bundle C — the consumer under test. Its one concept exercises every reference form the --federation resolver has to handle.

@@ -1,4 +1,4 @@
-# Question set for AI-X federation experiments (plan §1, §2 E3/E4).
+# Question set for AI-XF federation experiments (plan §1, §2 E3/E4).
 # Schema per entry: id, question, answer (one sentence), expected (list of
 # namespace/id a correct answer must cite), kind (cross|single), collision
 # (true|false — whether correctness depends on picking the right namespace

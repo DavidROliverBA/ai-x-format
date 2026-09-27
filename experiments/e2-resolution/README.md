@@ -4,7 +4,7 @@ Validator-side test cases for **E2** of the federation experiments plan
 (`~/Documents/MyVault/docs/plans/2026-09-26-federation-experiments-plan.md`,
 §1 and §2 "E2"). Question: when two bundles share an `id`, what does a
 consumer do with a qualified, an unqualified, and an explicit-scheme
-reference? This directory tests the `ai-x-validate.py --federation` resolver
+reference? This directory tests the `ai-xf-validate.py --federation` resolver
 added for E1/E2 against three small, self-contained fixture bundles.
 
 These fixtures are independent of `experiments/fixtures/` (built separately
@@ -15,13 +15,13 @@ for E1/E3+) — nothing here depends on that directory existing.
 ```
 e2-resolution/
 ├── README.md                       # this file
-├── federation.ai-x.yaml             # lists bundle-a, bundle-b, bundle-c (all source: path)
+├── federation.ai-xf.yaml             # lists bundle-a, bundle-b, bundle-c (all source: path)
 ├── bundle-a/                       # namespace `a` — ids: shared, only-a
 ├── bundle-b/                       # namespace `b` — ids: shared, only-b
 ├── bundle-c/                       # namespace `c` — the consumer under test
 │   └── concepts/linker.md          # one concept, six `links` entries — see below
 ├── baseline-examples-level2.json   # examples/ --level 2 --json, captured BEFORE
-│                                   # --federation was added to ai-x-validate.py
+│                                   # --federation was added to ai-xf-validate.py
 ├── test_resolution.py              # stdlib unittest, subprocess + --json
 └── run.sh                          # runs the validator by hand, then the test suite
 ```
@@ -41,7 +41,7 @@ stub).
 | 1 | `only-a` | unqualified | Doesn't resolve in bundle-c itself; resolves in exactly one other bundle (`a`) → **warning**, Foam rule, names `a`, chosen `a`. |
 | 2 | `shared` | unqualified | Resolves in **both** `a` and `b` → **warning**, names both, chosen `a` (alphabetically first). |
 | 3 | `a/only-a` | qualified | Resolves against the federation index → **no finding**. |
-| 4 | `ai-x://b/shared` | explicit `ai-x://` | Resolves against the federation index → **no finding**. Also exercises the `body_link_targets` change: the body links to this exact URL, proving the scheme is recognised (and would register `b/shared` too, had the body used the bare form instead). |
+| 4 | `ai-xf://b/shared` | explicit `ai-xf://` | Resolves against the federation index → **no finding**. Also exercises the `body_link_targets` change: the body links to this exact URL, proving the scheme is recognised (and would register `b/shared` too, had the body used the bare form instead). |
 | 5 | `c/something` | qualified, own namespace | **Error** — "MUST NOT qualify same-bundle references" (SPEC §9.2) — fires even though `bundle-c/concepts/something.md` exists and would otherwise resolve. This is the one case that makes the bundle fail Level 2. |
 | 6 | `b/missing` | qualified | No such id anywhere in the federation → **warning**, tolerated (§11.1). |
 
@@ -56,7 +56,7 @@ absence, asserted explicitly in `test_resolution.py`.
 ./run.sh
 ```
 
-Runs the validator directly against `bundle-c --federation federation.ai-x.yaml`
+Runs the validator directly against `bundle-c --federation federation.ai-xf.yaml`
 under both the stdlib fallback YAML parser and real PyYAML (`uv run --with
 pyyaml`), diffs `examples/` (no `--federation`) between parsers and against
 the pre-change baseline, then runs the unittest suite.
@@ -74,7 +74,7 @@ python3 test_resolution.py -v
 
 - **`RegressionUnchanged`** — `examples/ --level 2 --json` (no `--federation`)
   is unchanged from `baseline-examples-level2.json`, a copy captured with
-  `python3 tools/ai-x-validate.py examples --level 2 --json` *before* the
+  `python3 tools/ai-xf-validate.py examples --level 2 --json` *before* the
   `--federation` flag existed. Checked under both parsers, and the two
   parsers are also checked against each other directly.
 - **`FederationResolution`** — the six-case table above, exactly: 4 findings,
@@ -99,7 +99,7 @@ python3 test_resolution.py -v
    check even though its `to:` text looks identical to a same-bundle
    reference. Only a `to:` that resolves via this bundle's own `ids` or a
    same-bundle relative path is held to the MUST-mirror rule.
-2. **`source: git` in `federation.ai-x.yaml`.** Per the task brief, treated as
+2. **`source: git` in `federation.ai-xf.yaml`.** Per the task brief, treated as
    a local path for this experiment: `subdir` is resolved relative to the
    git repository that contains the *federation manifest itself* (walking
    up from the manifest's directory for a `.git`), not the `repo:` URL the
@@ -115,15 +115,15 @@ python3 test_resolution.py -v
    triggers the Foam rule or a warning, even when other bundles also carry
    that id (case 2 shows the opposite: bundle-c has neither `only-a` nor
    `shared`, so both fall through to the Foam search).
-4. **`ai-x://` and Level 3's qualified-reference well-formedness check.** The
+4. **`ai-xf://` and Level 3's qualified-reference well-formedness check.** The
    pre-existing Level 3 check ("`to:` containing `/` must be a well-formed
-   `namespace/id`") did not know about the new explicit `ai-x://namespace/id`
+   `namespace/id`") did not know about the new explicit `ai-xf://namespace/id`
    form and would have flagged it as malformed. Both checks now share one
-   `qualified_parts()` helper so `ai-x://` is recognised consistently
+   `qualified_parts()` helper so `ai-xf://` is recognised consistently
    everywhere a qualified reference is parsed.
 5. **Federation-level vocab checks** (types/rels lists at the federation
-   level) are implemented in `ai-x-validate.py` per the task brief but not
-   exercised by this fixture — `federation.ai-x.yaml` here has no
+   level) are implemented in `ai-xf-validate.py` per the task brief but not
+   exercised by this fixture — `federation.ai-xf.yaml` here has no
    `vocabularies` key. That check belongs more naturally with an E3-style
    fixture that already has shared vocab files; adding one here would have
    pulled unrelated findings into this test's exact-count assertions.

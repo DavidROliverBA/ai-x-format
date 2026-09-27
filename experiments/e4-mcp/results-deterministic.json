@@ -8,8 +8,8 @@
     "platform": "macOS-27.0-arm64-arm-64bit"
   },
   "server": {
-    "script": "/Users/davidoliver/github/ai-x-format/experiments/e4-mcp/server.py",
-    "federation": "/Users/davidoliver/github/ai-x-format/experiments/fixtures/federation.ai-x.yaml"
+    "script": "/Users/davidoliver/github/ai-xf-format/experiments/e4-mcp/server.py",
+    "federation": "/Users/davidoliver/github/ai-xf-format/experiments/fixtures/federation.ai-xf.yaml"
   },
   "note": "Deterministic mode is a retrieval/payload-contract floor, not an answer-quality measure \u2014 it never reads the answer text.",
   "questions": [

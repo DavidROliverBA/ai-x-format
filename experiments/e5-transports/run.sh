@@ -7,7 +7,7 @@
 #
 #   (a) git        — init, commit, clone
 #   (b) rsync      — `rsync -a` to a temp dir
-#   (c) iCloud     — copy into ~/Library/.../CloudDocs/ai-x-e5-roundtrip/,
+#   (c) iCloud     — copy into ~/Library/.../CloudDocs/ai-xf-e5-roundtrip/,
 #                    poll for sync, copy back out, remove the folder
 #   (d) kcmd       — SKIPPED (no gcloud on this machine); records the
 #                    connector doc's own stated losses instead
@@ -18,13 +18,13 @@
 # For (a)/(b)/(c)/(e), compare.py diffs the transported bundle against the
 # untouched source, byte-for-byte and frontmatter key-by-key, classifying
 # each key preserved / normalised / lost. Only reads examples/; never
-# modifies it or tools/ai-x-validate.py. All scratch work happens under
-# $E5_WORK (default /tmp/ai-x-e5).
+# modifies it or tools/ai-xf-validate.py. All scratch work happens under
+# $E5_WORK (default /tmp/ai-xf-e5).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-E5_WORK="${E5_WORK:-/tmp/ai-x-e5}"
+E5_WORK="${E5_WORK:-/tmp/ai-xf-e5}"
 COMPARE="$SCRIPT_DIR/compare.py"
 ROUNDTRIP="$SCRIPT_DIR/yaml_roundtrip.py"
 
@@ -61,8 +61,8 @@ cp -R "$SOURCE"/. "$GIT_ORIGIN"/
 (
   cd "$GIT_ORIGIN"
   git init -q -b main
-  git -c user.name="AI-X E5 Fixture" -c user.email="e5-fixture@example.invalid" add -A
-  git -c user.name="AI-X E5 Fixture" -c user.email="e5-fixture@example.invalid" \
+  git -c user.name="AI-XF E5 Fixture" -c user.email="e5-fixture@example.invalid" add -A
+  git -c user.name="AI-XF E5 Fixture" -c user.email="e5-fixture@example.invalid" \
       -c commit.gpgsign=false commit -q -m "E5 fixture: example-payments bundle"
 )
 git clone -q "$GIT_ORIGIN" "$GIT_CLONE"
@@ -82,7 +82,7 @@ echo
 echo "############################################"
 echo "# (c) iCloud Drive: copy in, poll for sync, copy out"
 echo "############################################"
-ICLOUD_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/ai-x-e5-roundtrip"
+ICLOUD_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/ai-xf-e5-roundtrip"
 rm -rf "$ICLOUD_DIR"
 mkdir -p "$ICLOUD_DIR"
 cp -R "$SOURCE"/. "$ICLOUD_DIR"/

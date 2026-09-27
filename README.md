@@ -1,13 +1,13 @@
-# AI-X — AI eXchange Format
+# AI-XF — AI eXchange Format
 
 > A portable, vendor-neutral format for curated knowledge that both humans and
 > AI agents produce and consume. It adds what a *reasoning* agent needs on top
 > of a folder of markdown: **stable identity, typed relationships, provenance,
 > media identity, federation, and change semantics**.
 
-AI-X is a **strict superset of Google Cloud's [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/open-knowledge-format) v0.2**.
-Every AI-X bundle is also a valid OKF bundle: OKF-only agents read it today,
-AI-X-aware agents read the same files and see more.
+AI-XF is a **strict superset of Google Cloud's [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/open-knowledge-format) v0.2**.
+Every AI-XF bundle is also a valid OKF bundle: OKF-only agents read it today,
+AI-XF-aware agents read the same files and see more.
 
 | | |
 |---|---|
@@ -15,7 +15,7 @@ AI-X-aware agents read the same files and see more.
 | **Experiments** | [`experiments/`](./experiments/) — the runnable evidence behind v0.4's federation rules; numbers in [`RESULTS.md`](./experiments/RESULTS.md) |
 | **Curation policy** (non-normative) | [`CURATOR.md`](./CURATOR.md) — six rules and four numbers to paste into an agent's instructions |
 | **Worked example** | [`examples/`](./examples/) — passes the validator at Level 3 |
-| **Validator** | [`tools/ai-x-validate.py`](./tools/ai-x-validate.py) — conformance ladder, `--stats`, `--federation` |
+| **Validator** | [`tools/ai-xf-validate.py`](./tools/ai-xf-validate.py) — conformance ladder, `--stats`, `--federation` |
 
 ---
 
@@ -32,9 +32,9 @@ contradiction, a merge, a claim gaining support. Everything stays "just files".
 
 ---
 
-## What AI-X adds to OKF
+## What AI-XF adds to OKF
 
-| Capability | OKF v0.2 | AI-X v0.4 |
+| Capability | OKF v0.2 | AI-XF v0.4 |
 |---|---|---|
 | Markdown + YAML, human-readable, git-diffable | ✅ | ✅ |
 | Only `type` required | ✅ | ✅ (Level 0) |
@@ -48,11 +48,11 @@ contradiction, a merge, a claim gaining support. Everything stays "just files".
 | Merge and split | — | tombstones, `merged-into` / `split-from`, successor redirects |
 | Curation activity | prose `log.md` | controlled leading-word vocabulary, so a bundle can report its own Update : Creation ratio |
 | Binary assets | opaque URIs | **content-hash identity** and embedding pointers (`media`) |
-| Multiple teams | one bundle at a time | **federation**: namespaces, `namespace/id` and `ai-x://namespace/id` links, shared vocabularies, a consumer manifest with per-bundle provenance (`ref` or OCI `digest`), a resolution rule that never crosses a bundle boundary silently, and `imported` copies that do not inherit trust |
-| Bundle manifest | — | `manifest.ai-x.yaml` |
-| OKF interoperability | n/a | **guaranteed**: every AI-X bundle is a valid OKF bundle |
+| Multiple teams | one bundle at a time | **federation**: namespaces, `namespace/id` and `ai-xf://namespace/id` links, shared vocabularies, a consumer manifest with per-bundle provenance (`ref` or OCI `digest`), a resolution rule that never crosses a bundle boundary silently, and `imported` copies that do not inherit trust |
+| Bundle manifest | — | `manifest.ai-xf.yaml` |
+| OKF interoperability | n/a | **guaranteed**: every AI-XF bundle is a valid OKF bundle |
 
-AI-X adds exactly those capabilities and nothing else load-bearing.
+AI-XF adds exactly those capabilities and nothing else load-bearing.
 
 ---
 
@@ -88,13 +88,13 @@ one entry per move. Nothing in it is required for conformance.
 
 ## The compatibility contract
 
-1. Every AI-X concept file is a valid OKF concept file: parseable frontmatter,
+1. Every AI-XF concept file is a valid OKF concept file: parseable frontmatter,
    non-empty `type`.
 2. OKF v0.2's trust and lifecycle fields are adopted unchanged, with OKF's value
    vocabularies (`status: draft | stable | deprecated`), its actor convention
    (`<producer>/<version>`, `human:<id>`, `process:<id>`) and its per-claim
    footnote attribution.
-3. AI-X-only data lives in frontmatter keys (`id`, `links`, `provenance`,
+3. AI-XF-only data lives in frontmatter keys (`id`, `links`, `provenance`,
    `media`, `aliases`) that OKF consumers preserve or ignore.
 4. Every same-bundle typed `links` edge is mirrored by a plain markdown body
    link, so an OKF-only consumer still sees the (untyped) edge.
@@ -114,7 +114,7 @@ type: Note
 # Anything
 ```
 
-A Level 2 (AI-X Full) claim with an open contradiction and a per-claim citation:
+A Level 2 (AI-XF Full) claim with an open contradiction and a per-claim citation:
 
 ```markdown
 ---
@@ -160,24 +160,24 @@ worked bundle in [`examples/`](./examples/) shows this, a merge tombstone, a
 | Level | Name | Adds |
 |-------|------|------|
 | 0 | OKF-compatible | Valid OKF bundle |
-| 1 | AI-X Core | Unique `id` per concept + `manifest.ai-x.yaml` |
-| 2 | AI-X Full | Typed and mirrored `links`, trust signals on every concept, well-formed `media`, well-formed contradiction `state` / `resolved` |
-| 3 | AI-X Federated | `namespace` + qualified cross-bundle links + shared vocabularies |
+| 1 | AI-XF Core | Unique `id` per concept + `manifest.ai-xf.yaml` |
+| 2 | AI-XF Full | Typed and mirrored `links`, trust signals on every concept, well-formed `media`, well-formed contradiction `state` / `resolved` |
+| 3 | AI-XF Federated | `namespace` + qualified cross-bundle links + shared vocabularies |
 
 Validate any bundle:
 
 ```bash
-python3 tools/ai-x-validate.py examples/                 # the example bundle
-python3 tools/ai-x-validate.py path/to/bundle --level 3
-python3 tools/ai-x-validate.py path/to/bundle --json
-python3 tools/ai-x-validate.py path/to/bundle --stats    # curation health
-python3 tools/ai-x-validate.py path/to/bundle --level 3 --federation federation.ai-x.yaml
+python3 tools/ai-xf-validate.py examples/                 # the example bundle
+python3 tools/ai-xf-validate.py path/to/bundle --level 3
+python3 tools/ai-xf-validate.py path/to/bundle --json
+python3 tools/ai-xf-validate.py path/to/bundle --stats    # curation health
+python3 tools/ai-xf-validate.py path/to/bundle --level 3 --federation federation.ai-xf.yaml
 ```
 
 `--stats` never affects pass/fail. It reports trust tiers, staleness, open and
 resolved contradictions, per-claim citation coverage, the spread of asserted
 confidence (and flags a lopsided one), and the Update : Creation ratio from
-`log.md`. The validator warns on the three spellings AI-X v0.2 got wrong
+`log.md`. The validator warns on the three spellings AI-XF v0.2 got wrong
 (`status: active`, `sources[].uri`, `agent:` / `pipeline:` actors) and still
 reads them.
 
@@ -185,11 +185,11 @@ reads them.
 
 ## Origin
 
-AI-X generalises the note model that a ~2,900-note working knowledge vault
+AI-XF generalises the note model that a ~2,900-note working knowledge vault
 converged on independently: stable identifier foreign keys, typed relationship
 fields (`supersedes` / `dependsOn` / `contradicts`) and quality indicators
 (`confidence` / `freshness` / `source` / `verified`). That model turned out to
-be a superset of OKF; AI-X is that superset written down.
+be a superset of OKF; AI-XF is that superset written down.
 
 - **v0.1** (2026-07-18): identity, typed links, provenance.
 - **v0.2** (2026-08-20): rebased on OKF v0.2, media identity, federation.
@@ -202,7 +202,7 @@ be a superset of OKF; AI-X is that superset written down.
 
 ## Status
 
-AI-X v0.4 is a draft designed for backward-compatible growth. Every v0.3 bundle
+AI-XF v0.4 is a draft designed for backward-compatible growth. Every v0.3 bundle
 is a valid v0.4 bundle, and every v0.2 bundle a valid v0.3 one; v0.1 bundles remain valid input, with their deprecated
 fields (`timestamp`, `provenance.verified` / `.freshness` / `.reviewed`) read
 but no longer written. See the changelog in [`SPEC.md`](./SPEC.md) §13.

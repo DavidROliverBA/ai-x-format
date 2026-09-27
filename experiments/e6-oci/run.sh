@@ -17,7 +17,7 @@
 # Also measures wall-clock for the producer flow (package+push+sign) and
 # the consumer flow (pull+verify+unpack), counts the distinct commands a
 # first-time consumer needs, and re-validates the pulled original bundle
-# with tools/ai-x-validate.py --level 3.
+# with tools/ai-xf-validate.py --level 3.
 #
 # Environment:
 #   - oras and cosign are installed via Homebrew if missing.
@@ -27,7 +27,7 @@
 #     cosign sign (see NOTE in that branch for why they are not
 #     equivalent).
 #
-# Work directory: $E6_WORK (default /tmp/ai-x-e6). Cosign keys persist in
+# Work directory: $E6_WORK (default /tmp/ai-xf-e6). Cosign keys persist in
 # $E6_WORK/keys/ across runs (not written into the repo). Everything else
 # under $E6_WORK is ephemeral scratch space, removed at the end of a
 # successful run.
@@ -36,17 +36,17 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BUNDLE_SRC="$REPO_ROOT/examples"
-VALIDATOR="$REPO_ROOT/tools/ai-x-validate.py"
+VALIDATOR="$REPO_ROOT/tools/ai-xf-validate.py"
 MAKE_BUNDLE="$SCRIPT_DIR/make-bundle.py"
 
-E6_WORK="${E6_WORK:-/tmp/ai-x-e6}"
+E6_WORK="${E6_WORK:-/tmp/ai-xf-e6}"
 KEYS="$E6_WORK/keys"
 SCRATCH="$E6_WORK/scratch"
-REGISTRY_NAME="ai-x-e6-registry"
+REGISTRY_NAME="ai-xf-e6-registry"
 REGISTRY_PORT="5001"
 REPO_PATH="aix/example-payments"
 TAG="e6-experiment"
-ARTIFACT_TYPE="application/vnd.ai-x.bundle.v1+tar+gzip"
+ARTIFACT_TYPE="application/vnd.ai-xf.bundle.v1+tar+gzip"
 ROOT_NAME="example-payments"
 
 mkdir -p "$KEYS" "$SCRATCH"
@@ -120,13 +120,13 @@ fi
 
 echo
 echo "--- 2. Read bundle metadata ---"
-AI_X_NAME="$(grep -m1 '^name:' "$BUNDLE_SRC/manifest.ai-x.yaml" | sed 's/^name: *//')"
-AI_X_NAMESPACE="$(grep -m1 '^namespace:' "$BUNDLE_SRC/manifest.ai-x.yaml" | sed 's/^namespace: *//')"
-AI_X_VERSION="$(grep -m1 '^ai-x:' "$BUNDLE_SRC/manifest.ai-x.yaml" | sed 's/^ai-x: *//; s/"//g')"
-AI_X_GENERATED="$(grep -m1 '^generated:' "$BUNDLE_SRC/manifest.ai-x.yaml" | sed 's/^generated: *//')"
+AI_XF_NAME="$(grep -m1 '^name:' "$BUNDLE_SRC/manifest.ai-xf.yaml" | sed 's/^name: *//')"
+AI_XF_NAMESPACE="$(grep -m1 '^namespace:' "$BUNDLE_SRC/manifest.ai-xf.yaml" | sed 's/^namespace: *//')"
+AI_XF_VERSION="$(grep -m1 '^ai-xf:' "$BUNDLE_SRC/manifest.ai-xf.yaml" | sed 's/^ai-xf: *//; s/"//g')"
+AI_XF_GENERATED="$(grep -m1 '^generated:' "$BUNDLE_SRC/manifest.ai-xf.yaml" | sed 's/^generated: *//')"
 GIT_COMMIT="$(cd "$REPO_ROOT" && git rev-parse --short HEAD)"
 GIT_COMMIT_FULL="$(cd "$REPO_ROOT" && git rev-parse HEAD)"
-echo "name=$AI_X_NAME namespace=$AI_X_NAMESPACE aix=$AI_X_VERSION commit=$GIT_COMMIT"
+echo "name=$AI_XF_NAME namespace=$AI_XF_NAMESPACE aix=$AI_XF_VERSION commit=$GIT_COMMIT"
 
 # oras auto-stamps org.opencontainers.image.created with the current wall-clock
 # time on every push unless a value is supplied explicitly, which makes the
@@ -134,16 +134,16 @@ echo "name=$AI_X_NAME namespace=$AI_X_NAMESPACE aix=$AI_X_VERSION commit=$GIT_CO
 # bundle content) is byte-identical (confirmed experimentally: two pushes of
 # the same tarball, no explicit `created`, gave two different manifest
 # digests; supplying a fixed value made them identical). We pin it to the
-# bundle's own `generated:` timestamp from manifest.ai-x.yaml, which is
+# bundle's own `generated:` timestamp from manifest.ai-xf.yaml, which is
 # itself deterministic per-content, so a re-push of unchanged content
 # reproduces the exact same manifest digest.
 ANNOTATIONS=(
-  --annotation "org.opencontainers.image.title=$AI_X_NAME"
-  --annotation "org.opencontainers.image.created=$AI_X_GENERATED"
+  --annotation "org.opencontainers.image.title=$AI_XF_NAME"
+  --annotation "org.opencontainers.image.created=$AI_XF_GENERATED"
   --annotation "org.opencontainers.image.revision=$GIT_COMMIT_FULL"
-  --annotation "io.aix.bundle.name=$AI_X_NAME"
-  --annotation "io.aix.bundle.namespace=$AI_X_NAMESPACE"
-  --annotation "io.aix.bundle.aix-version=$AI_X_VERSION"
+  --annotation "io.aix.bundle.name=$AI_XF_NAME"
+  --annotation "io.aix.bundle.namespace=$AI_XF_NAMESPACE"
+  --annotation "io.aix.bundle.aix-version=$AI_XF_VERSION"
 )
 
 echo
@@ -283,7 +283,7 @@ python3 "$VALIDATOR" "$UNPACKED_BUNDLE" --level 3
 VALIDATE_RC=$?
 set -e
 if [ "$VALIDATE_RC" -eq 0 ]; then
-  echo "VALIDATE RESULT: PASS — the OCI round-trip preserved a valid AI-X v0.3 bundle."
+  echo "VALIDATE RESULT: PASS — the OCI round-trip preserved a valid AI-XF v0.3 bundle."
 else
   echo "VALIDATE RESULT: FAIL (unexpected!)"
 fi
@@ -320,22 +320,22 @@ echo "--- 7b. Push tampered bundle to the SAME tag (overwrite) ---"
 if [ "$USE_DOCKER" -eq 1 ]; then
   TAMPER_PUSH_OUT="$(cd "$SCRATCH" && oras push --plain-http "${REF_BASE}:${TAG}" \
     --artifact-type "$ARTIFACT_TYPE" \
-    --annotation "org.opencontainers.image.title=$AI_X_NAME" \
+    --annotation "org.opencontainers.image.title=$AI_XF_NAME" \
     --annotation "org.opencontainers.image.revision=${GIT_COMMIT_FULL}-tampered" \
-    --annotation "io.aix.bundle.name=$AI_X_NAME" \
-    --annotation "io.aix.bundle.namespace=$AI_X_NAMESPACE" \
-    --annotation "io.aix.bundle.aix-version=$AI_X_VERSION" \
+    --annotation "io.aix.bundle.name=$AI_XF_NAME" \
+    --annotation "io.aix.bundle.namespace=$AI_XF_NAMESPACE" \
+    --annotation "io.aix.bundle.aix-version=$AI_XF_VERSION" \
     "${TAMPERED_NAME}:${ARTIFACT_TYPE}" 2>&1)"
   echo "$TAMPER_PUSH_OUT"
   TAMPERED_DIGEST="$(echo "$TAMPER_PUSH_OUT" | grep '^Digest:' | awk '{print $2}')"
 else
   TAMPER_PUSH_OUT="$(cd "$SCRATCH" && oras push --oci-layout "layout:${TAG}" \
     --artifact-type "$ARTIFACT_TYPE" \
-    --annotation "org.opencontainers.image.title=$AI_X_NAME" \
+    --annotation "org.opencontainers.image.title=$AI_XF_NAME" \
     --annotation "org.opencontainers.image.revision=${GIT_COMMIT_FULL}-tampered" \
-    --annotation "io.aix.bundle.name=$AI_X_NAME" \
-    --annotation "io.aix.bundle.namespace=$AI_X_NAMESPACE" \
-    --annotation "io.aix.bundle.aix-version=$AI_X_VERSION" \
+    --annotation "io.aix.bundle.name=$AI_XF_NAME" \
+    --annotation "io.aix.bundle.namespace=$AI_XF_NAMESPACE" \
+    --annotation "io.aix.bundle.aix-version=$AI_XF_VERSION" \
     "${TAMPERED_NAME}:${ARTIFACT_TYPE}" 2>&1)"
   echo "$TAMPER_PUSH_OUT"
   TAMPERED_DIGEST="$(echo "$TAMPER_PUSH_OUT" | grep '^Digest:' | awk '{print $2}')"
@@ -389,7 +389,7 @@ echo "############################################"
 cat <<SUMMARY
 backend:                  $([ "$USE_DOCKER" -eq 1 ] && echo "local Docker registry (plain-HTTP, port $REGISTRY_PORT)" || echo "oras --oci-layout (no registry)")
 sign mode:                $SIGN_MODE
-bundle:                   $AI_X_NAME ($AI_X_NAMESPACE), aix $AI_X_VERSION, commit $GIT_COMMIT
+bundle:                   $AI_XF_NAME ($AI_XF_NAMESPACE), aix $AI_XF_VERSION, commit $GIT_COMMIT
 original digest:          $ORIGINAL_DIGEST
 tampered digest:          $TAMPERED_DIGEST
 key generation:           ${KEYGEN_SECS}s (one-time, excluded from producer flow)

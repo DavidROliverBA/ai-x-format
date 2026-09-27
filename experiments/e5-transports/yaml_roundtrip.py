@@ -8,7 +8,7 @@ when it claims to "carry every key". For every file under <source>, loads
 any YAML frontmatter with PyYAML and dumps it back with
 `yaml.safe_dump(sort_keys=False)`, writing the result (new frontmatter +
 unchanged body) to the same relative path under <dest>. Files without
-frontmatter (index.md, log.md) and non-.md files (manifest.ai-x.yaml) are
+frontmatter (index.md, log.md) and non-.md files (manifest.ai-xf.yaml) are
 copied byte-for-byte, unchanged.
 
 Requires PyYAML — run via `uv run --with pyyaml python3 yaml_roundtrip.py`.

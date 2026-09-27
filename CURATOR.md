@@ -1,8 +1,8 @@
 # CURATOR.md — a reference curation policy
 
-**Status:** non-normative. Nothing here is required for AI-X conformance.
+**Status:** non-normative. Nothing here is required for AI-XF conformance.
 
-AI-X is a format. It can record that two concepts disagree, that one replaced
+AI-XF is a format. It can record that two concepts disagree, that one replaced
 another, that a claim points at its evidence. It cannot make a curator do any of
 that. The behaviour lives in the instructions you give the agent that maintains
 the bundle — what Andrej Karpathy's
@@ -11,12 +11,12 @@ pattern calls the *schema* layer, and deliberately leaves to the reader.
 
 This file is one such schema: six rules and four numbers. Paste it into your
 agent's instruction file (`CLAUDE.md`, `AGENTS.md` or equivalent) and edit it to
-fit. It assumes an AI-X v0.3 bundle, and each rule names the field that makes it
+fit. It assumes an AI-XF v0.3 bundle, and each rule names the field that makes it
 checkable.
 
 The problem it exists to prevent: a knowledge base that grows without
 compounding. Every ingest creates a note; nothing ever revises one. In the vault
-AI-X was extracted from, 138 notes carried a `contradicts` field and six had ever
+AI-XF was extracted from, 138 notes carried a `contradicts` field and six had ever
 been filled in. The field existed. The discipline did not.
 
 ---
@@ -31,7 +31,7 @@ uses different words, and keyword search will never find it.
 
 If the bundle is part of a federation, search the other held bundles too, and
 when you link across a boundary, qualify the reference (`namespace/id` or
-`ai-x://namespace/id`). An unqualified reference that only resolves in another
+`ai-xf://namespace/id`). An unqualified reference that only resolves in another
 bundle will be resolved for you, with a warning; do not leave it that way.
 
 Only then choose **one** move and record it in `log.md`:
@@ -117,7 +117,7 @@ bundle, add a `Gap` entry. That list is next week's reading list.
 Run them from the bundle itself:
 
 ```bash
-python3 tools/ai-x-validate.py path/to/bundle --stats
+python3 tools/ai-xf-validate.py path/to/bundle --stats
 ```
 
 | Number | Healthy | Warning sign |

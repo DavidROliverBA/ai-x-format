@@ -153,21 +153,21 @@ async def main(federation: Path | None) -> None:
         # --- resources -----------------------------------------------------
         listed_templates = await client.list_resource_templates()
         uri_templates = [t.uri_template for t in listed_templates.resource_templates]
-        assert "ai-x://{namespace}/{id}" in uri_templates, uri_templates
+        assert "ai-xf://{namespace}/{id}" in uri_templates, uri_templates
         checks += 1
 
-        res = await client.read_resource("ai-x://data-eng/orders-table")
+        res = await client.read_resource("ai-xf://data-eng/orders-table")
         assert len(res.contents) == 1
         content = res.contents[0]
         assert content.mime_type == "text/markdown", content.mime_type
         assert content.text.startswith("---\n"), "resource should be the raw concept file, frontmatter first"
         assert "id: orders-table" in content.text
         checks += 1
-        print(f"resource ai-x://data-eng/orders-table: {len(content.text)} chars, mime={content.mime_type}")
+        print(f"resource ai-xf://data-eng/orders-table: {len(content.text)} chars, mime={content.mime_type}")
 
         # unknown resource -> a clean protocol error, not a crash
         try:
-            await client.read_resource("ai-x://data-eng/does-not-exist")
+            await client.read_resource("ai-xf://data-eng/does-not-exist")
             raise AssertionError("reading an unknown resource id should have raised")
         except Exception as e:  # MCPError from the client, per the SDK's Handling Errors page
             assert "Unknown id" in str(e), str(e)
