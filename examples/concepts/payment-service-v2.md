@@ -11,7 +11,7 @@ generated:
   by: vault-exporter/1.0
   at: 2026-08-20T09:10:00Z
 status: draft
-stale_after: 2026-11-20
+stale_after: 2026-11-20T00:00:00Z
 sources:
   - id: payment-v2-hld
     resource: https://internal.example.com/designs/payment-v2-hld

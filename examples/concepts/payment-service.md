@@ -13,9 +13,9 @@ generated:
   at: 2026-07-18T09:12:00Z
 verified:
   - by: human:jane-doe
-    at: 2026-07-18
+    at: 2026-07-18T10:12:00Z
 status: deprecated
-stale_after: 2026-12-31
+stale_after: 2026-12-31T00:00:00Z
 sources:
   - id: payments-runbook
     resource: https://internal.example.com/runbooks/payments

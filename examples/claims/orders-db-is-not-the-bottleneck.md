@@ -9,7 +9,7 @@ generated:
   by: curator/1.0
   at: 2026-09-21T08:00:00Z
 status: draft
-stale_after: 2026-12-21
+stale_after: 2026-12-21T00:00:00Z
 sources:
   - id: sept-load-test
     resource: https://internal.example.com/tests/2026-09-18-capture-load
@@ -23,7 +23,7 @@ links:
     to: sync-capture-limits-throughput
     state: open
     by: curator/1.0
-    at: 2026-09-21
+    at: 2026-09-21T00:00:00Z
     note: New load test disagrees with the Q2 attribution. Both claims kept; awaiting a human ruling.
 ---
 

@@ -11,11 +11,11 @@ generated:
   at: 2026-05-28T14:30:00Z
 verified:
   - by: process:schema-checker
-    at: 2026-08-01
+    at: 2026-08-01T00:00:00Z
   - by: human:jane-doe
-    at: 2026-05-28
+    at: 2026-05-28T15:30:00Z
 status: stable
-stale_after: 2027-05-28
+stale_after: 2027-05-28T00:00:00Z
 
 provenance:
   confidence: high

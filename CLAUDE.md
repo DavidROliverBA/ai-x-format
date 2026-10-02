@@ -26,13 +26,13 @@ cd experiments/e2-resolution && python3 -m unittest test_resolution.FederationRe
 experiments/e2-resolution/run.sh     # full E2 run, including the stdlib-vs-PyYAML diff and the examples/ baseline check
 ```
 
-Each experiment directory has its own `run.sh`. Some need external tools: `uv`, qmd (E3), an MCP client (E4), and ORAS + Cosign (E6). Scratch output goes to `/tmp` or gitignored paths.
+Each experiment directory has its own `run.sh`. Some need external tools: `uv`, qmd (E3), an MCP client (E4), ORAS + Cosign (E6), MyVault's exporter (E8) and bun for `bunx knowledgex` (E9). Scratch output goes to `/tmp` or gitignored paths.
 
 ## How the validator works
 
 `tools/ai-xf-validate.py` is a single self-contained file with no required dependencies. It uses PyYAML when available and otherwise falls back to a built-in mini YAML parser (`_mini_yaml` / `_parse_block`) that covers only the YAML subset AI-XF frontmatter uses. **Both parsers must produce identical results.** E2's `run.sh` diffs their JSON output, and also diffs `examples/` against `experiments/e2-resolution/baseline-examples-level2.json`. A change that alters the validator's output for `examples/` must update that baseline deliberately. v0.4.1 fixed a fallback-parser bug in which column-0 lists were dropped, so test new YAML shapes under both parsers.
 
-The structure follows the conformance ladder (Level 0 OKF-compatible → 1 Core → 2 Full → 3 Federated). `validate()` accumulates `Finding`s (error or warning) at or below the target level. `collect_stats()` provides `--stats`, which reports curation health and **never affects pass/fail**. `load_federation()` builds a namespace → id index across the bundles listed in a `federation.ai-xf.yaml`. `source: git` entries resolve as local paths relative to the repo root, and the validator never fetches anything. The vocabularies (`CORE_RELS`, `LINK_STATES`, `OUTCOMES`, `LOG_WORDS`, `OKF_TRUST_FIELDS`, …) are module-level constants and must stay in step with `SPEC.md` §6, §7 and §10.
+The structure follows the conformance ladder (Level 0 OKF-compatible → 1 Core → 2 Full → 3 Federated). `validate()` accumulates `Finding`s (error or warning) at or below the target level. `collect_stats()` provides `--stats`, which reports curation health and **never affects pass/fail**. `load_federation()` builds a namespace → id index across the bundles listed in a `federation.ai-xf.yaml`. `source: git` entries resolve as local paths relative to the repo root, and the validator never fetches anything. The vocabularies (`CORE_RELS`, `REL_INVERSES`, `LINK_STATES`, `OUTCOMES`, `LOG_WORDS`, `OKF_TRUST_FIELDS`, …) are module-level constants and must stay in step with `SPEC.md` §6, §7 and §10.
 
 Federation resolution rule (SPEC §9.2): the bundle's own namespace is tried first, then other namespaces alphabetically. A cross-bundle resolution always produces a warning and is never silent. A reference qualified with the bundle's own namespace is an error.
 

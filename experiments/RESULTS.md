@@ -175,6 +175,44 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 
 **Bug found and fixed (v0.4.1):** the validator's fallback YAML parser dropped any `links:` list whose items sit at column 0, which is PyYAML's default dump style, so a bundle written by `ai-xf-export` validated *clean* under plain `python3` and showed 109 warnings under PyYAML. Silent drop in a validator; fixed, and both parsers now agree on every bundle in this repository. Also fixed: Level 3 required per-bundle `vocabularies` even when the federation declared them, contradicting §9.5.
 
+## E8: freshness and drift (added after v0.4.2)
+
+**2026-10-02.** Exploratory, no prior plan. Replays Isci's add / edit / delete stress test (Medium, Aug 2026) against `ai-xf-export/0.4` on copies of the vault's 102 psychology notes, federated with `ai-concepts`, under four producer modes. Detail in `e8-freshness/e8-results.md`.
+
+| After rename + delete | inplace (today) | fresh rebuild | tombstone | stable id + tombstone |
+|---|---|---|---|---|
+| Active concepts with no source | **2** | 0 | 0 | 0 |
+| Cross-bundle refs newly unresolved | 0 | **2**, worded "may be not-yet-written" | 0 | 0 |
+| Validator | PASS, silent | PASS | PASS; `--stats` lists 2 retired, `Deprecation 2` | PASS; rename left no trace |
+
+- **The exporter accumulates.** Deleted and renamed notes stay as `stable` concepts that links still resolve to; the validator is silent.
+- **Bundle-only ghost detector:** a concept file not listed in the regenerated `index.md` caught 2/2 with 0 false positives.
+- **§6.6 tombstones + §10.2 `Deprecation` fix deletion with no spec change.** Rename needs stable ids: with `slug:` pinned, it is a non-event.
+- **"May be not-yet-written" was wrong 11 times in 12** on the real bundle (7 archived, 4 out-of-slice references, 1 unwritten). This revises E7: its most-linked dangling targets are retired concepts, not a too-narrow slice.
+- **Schema layer:** a naive unused-vocabulary audit is mostly noise (8 of 13 unused rels are inverses unused by design). The real problem is collapse: 165 of 172 real concepts are `Concept`, while the vault's ten-value `conceptType` is dropped on export.
+- **Gap:** SPEC §6.6 says consumers SHOULD fall back to `aliases` for an unknown id; the reference validator does not.
+
+**Adopted the same day (no spec change):** the exporter now reconciles on re-export (tombstones, rename → `superseded-by` + alias, read-then-add `log.md`, `--pin-ids`, `conceptType` kept): 0 ghosts and 0 broken cross-bundle refs after rename + delete. Validator `--stats` gained `freshness` (concept files in no `index.md`; live edges into retired concepts and into redirects) and, with `--federation`, edges into other bundles' retired concepts and vocabulary unused by rel pair. On the pre-fix bundle it names both ghosts; on the post-fix one it reports 3 local and 1 cross-bundle edge into the retired concept. 15/15 tests under both parsers; `examples/` baseline unchanged.
+
+**Edge cases (second round):** 12 exporter tests surfaced a rename-back bug (fixed), silent retirement of hand-written concepts (now warned) and a different-slice footgun (now refused without `--allow-mass-retire`). Validator probes surfaced two older core bugs: a concept file moved with its id unchanged **failed Level 3** (mirroring compared filenames with ids, against §5.2), and a bundle-relative `to:` path did not resolve (§6.1). Both fixed; findings unchanged on every existing bundle under both parsers; 20/20 tests. A real re-export into copies of both kb repos: 162 `Update`s (the new `conceptType` only), then a no-op.
+
+**Went into v0.4.3:** the neutral "does not resolve" wording, the §6.6 `aliases` fallback in the validator (local and qualified), and a producer SHOULD in §6.6 that a concept leaving a bundle becomes a tombstone, with `CURATOR.md` rule 7. **Still open:** re-exporting the published kb repos.
+
+## E9: interoperability with KnowledgeX (added after v0.4.2)
+
+**2026-10-02.** Exploratory. `knowledgex@0.4.0`, the first third-party OKF producer tested. Detail in `e9-knowledgex/e9-results.md`.
+
+| Direction | Result |
+|---|---|
+| KnowledgeX notebook → AI-XF validator | Level 0 PASS (both parsers); Level 1 fails on `id`/manifest, as expected. `--stats` misses both relationships: KnowledgeX writes top-level `supersedes:`/`contradicts:` lists of file names, AI-XF reads `links[]` |
+| AI-XF `examples/` → KnowledgeX, nested as published | `kx check` passes, **search finds 0 notes** (flat notebooks only) |
+| Flattened, bare-date timestamps (`f4031dc`) | **0 of 5** human-reviewed concepts read as human-reviewed |
+| Flattened, v0.4.3 datetimes with events in order | **5 of 5**, matching AI-XF's own reading |
+
+- **The trust loss is about ordering, isolated by two controls:** a bare-date verification reads as midnight, before the same day's timed `generated.at`, so the content looks edited since it was checked (OKF §5.2). The first mechanical conversion to `T00:00:00Z` reproduced it in 8 fixture files; fixed, and SPEC §5.6 now says to keep events in order. `--stats` gained `changed_since_verified`.
+- **Relationship dialects do not interoperate** in either direction; each tool reports the other's retirements as having no successor. A matter for OKF #16/#22.
+- **Convergent design:** trust does not travel with copies (cf. §7.3a), `aliases`, the log words, retired notes hidden at search time, renames by content fingerprint (now in `ai-xf-export`).
+
 ---
 
 ## Summary and the v0.4 gate

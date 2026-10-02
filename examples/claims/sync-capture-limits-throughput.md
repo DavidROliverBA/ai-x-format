@@ -10,9 +10,9 @@ generated:
   at: 2026-07-18T09:30:00Z
 verified:
   - by: human:jane-doe
-    at: 2026-07-18
+    at: 2026-07-18T10:30:00Z
 status: stable
-stale_after: 2026-12-31
+stale_after: 2026-12-31T00:00:00Z
 sources:
   - id: payments-runbook
     resource: https://internal.example.com/runbooks/payments
@@ -28,7 +28,7 @@ links:
   - rel: supports
     to: payment-service-v2
     by: human:jane-doe
-    at: 2026-07-18
+    at: 2026-07-18T00:00:00Z
     note: This claim is the case for the event-driven rewrite.
   - rel: describes
     to: payment-service

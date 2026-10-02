@@ -128,9 +128,9 @@ generated:
   at: 2026-08-20T09:12:00Z
 verified:
   - by: human:jane-doe
-    at: 2026-08-20
+    at: 2026-08-20T00:00:00Z
 status: deprecated
-stale_after: 2027-02-20
+stale_after: 2027-02-20T00:00:00Z
 sources:
   - id: payments-runbook
     resource: https://internal.example.com/runbooks/payments
@@ -206,7 +206,7 @@ OKF v0.2's per-claim attribution, which AI-XF inherits unchanged (§7.4).
 | `verified` | list of maps | Verification events with actor-prefixed `by` (OKF v0.2). |
 | `sources` | list of maps | Provenance of the content (OKF v0.2): each entry has a REQUIRED `resource` and an optional `id` used as a footnote label for per-claim attribution (§7.4). Replaces the v0.1 body `# Citations` list. |
 | `status` | string | Lifecycle state (OKF v0.2): `draft`, `stable` or `deprecated`. Absent ⇒ `stable`. |
-| `stale_after` | ISO 8601 date | Absolute date after which the content SHOULD be treated as stale (OKF v0.2). |
+| `stale_after` | ISO 8601 datetime (§5.6) | Absolute instant from which the content SHOULD be treated as stale (OKF v0.2). |
 | `timestamp` | ISO 8601 datetime | **Deprecated** (OKF v0.1). Read as a fallback for `generated.at`; do not emit in new bundles. |
 
 ### 5.4 Recommended (AI-XF additions)
@@ -224,6 +224,27 @@ Producers MAY add any additional frontmatter keys. Consumers MUST preserve
 unknown keys when round-tripping and MUST NOT reject a document for their
 presence.
 
+### 5.6 Timestamps (v0.4.3)
+
+Every timestamp-valued key is an **ISO 8601 datetime with an explicit UTC
+offset**, for example `2026-06-30T14:00:00Z`. This is OKF's rule since its
+PR #6 (2026-08-21) for `generated.at`, `verified[].at`, `stale_after`,
+`sources[].last_modified` and `usage_window.from`/`to`; AI-XF applies it to its
+own timestamps too (`links[].at`, `links[].resolved.at`, `links[].verified[].at`).
+A bare date names a different instant in every timezone, so the same concept
+could be stale in one office and fresh in another.
+
+- Producers MUST write the datetime form.
+- Consumers MUST still read a bare date, or a datetime with no offset, as
+  that date or time in UTC (a date as `T00:00:00Z`). Validators SHOULD warn.
+  This is the usual rule for older spellings: read, don't write (§7.3).
+- `log.md` date headings are not field values and stay `YYYY-MM-DD` (§10.2).
+- When converting old dates, keep events in order. A verification read as
+  `T00:00:00Z` lands *before* content generated later that day, and a consumer
+  comparing `verified[].at` with `generated.at` will then read the content as
+  changed since it was checked (OKF §5.2 makes `generated.at` the last
+  meaningful change). E9 found exactly this in this repository's own examples.
+
 ---
 
 ## 6. Relationships
@@ -239,7 +260,7 @@ map:
 | `to` | string | MUST | Target concept: an `id` (preferred), a bundle-relative path, or a federation-qualified reference `namespace/id` (§9). |
 | `note` | string | MAY | One-line human explanation of this specific edge. |
 | `by` | string | MAY | The actor that asserted this edge, in OKF's actor convention (§7.1). Lets a consumer tell an edge a person drew from one an agent inferred. *(v0.3)* |
-| `at` | ISO 8601 date/datetime | MAY | When the edge was asserted. *(v0.3)* |
+| `at` | ISO 8601 datetime (§5.6) | MAY | When the edge was asserted. *(v0.3)* |
 | `state` | `open` \| `resolved` | MAY | Lifecycle of a `contradicts` edge (§6.5). Meaningless on other rels; consumers MUST ignore it there. *(v0.3)* |
 | `resolved` | map | MAY | How a contradiction was settled: `by`, `at`, and optional `outcome` (§6.5). *(v0.3)* |
 | `verified` | list of maps | MAY | Verification events for **this edge**, same shape and actor convention as the concept-level field (§7.1). An edge's trust tier is derived from it exactly as a concept's is; an edge with no `verified` is unverified even when its concept is human-reviewed. *(v0.4)* |
@@ -315,7 +336,7 @@ links:
     to: orders-db-is-not-the-bottleneck
     state: open
     by: curator/1.0
-    at: 2026-09-21
+    at: 2026-09-21T00:00:00Z
     note: Load test on 2026-09-18 shows headroom on the orders database.
 ```
 
@@ -328,7 +349,7 @@ links:
     state: resolved
     resolved:
       by: human:jane-doe
-      at: 2026-09-25
+      at: 2026-09-25T00:00:00Z
       outcome: superseded      # superseded | reconciled | both-stand
 ```
 
@@ -365,6 +386,19 @@ rules below keep every historical reference resolving.
 **Split.** When concept C is carved out of concept A, C declares
 `split-from: A`. A keeps its `id`. Nothing is deprecated.
 
+**Retirement (v0.4.3).** A concept that leaves a bundle SHOULD become a
+tombstone rather than disappear: `status: deprecated`, a `superseded-by` or
+`merged-into` edge when it has a successor, and a `Deprecation` (or `Merge`)
+entry in `log.md`. A producer that regenerates a bundle from another source,
+such as an exporter, SHOULD do this itself on every run, retiring any concept
+whose source has left the export. Deleting the file instead makes a removed
+concept indistinguishable from one that was never written, and a regenerating
+producer that never deletes leaves removed concepts live, with links still
+resolving to them; both were measured in `experiments/e8-freshness/`. A rename
+keeps the `id` (§5.2); where a producer cannot keep it, the old `id` becomes a
+tombstone with a `superseded-by` edge to the new one, and the new concept lists
+the old `id` in `aliases`.
+
 **Redirects.** When a consumer resolves a reference to a concept whose `status`
 is `deprecated` and which declares exactly one `superseded-by` or `merged-into`
 edge, it SHOULD surface the successor alongside (or instead of) the deprecated
@@ -388,7 +422,7 @@ map shrinks to carry only what OKF still lacks.
 | `generated` | Which actor produced the content and when (`by`, `at`). Actors use OKF's convention: `<producer>/<version>` for agents and tools, `human:<id>` for a person, `process:<id>` for an automated process. |
 | `verified` | A list of verification events (`by`, `at`); a single bare map is read as a one-element list. The actor yields OKF's three trust tiers: unverified (absent), machine-confirmed (non-`human:` actors only), human-reviewed (any `human:` actor). |
 | `status` | Lifecycle state: `draft`, `stable` (the default when absent) or `deprecated`. |
-| `stale_after` | Absolute staleness date. Staleness is a plain date comparison, not a calculation. |
+| `stale_after` | Absolute staleness instant (§5.6). Staleness is a plain comparison, `now >= stale_after`, not a calculation. |
 
 ### 7.2 The AI-XF `provenance` map (what OKF lacks)
 
@@ -416,6 +450,7 @@ reports it and flags a lopsided one.
 | `provenance.freshness` (band) | `stale_after` (date) | Read `stale` as past-stale; `current`/`recent` as not-yet-stale. |
 | `provenance.reviewed` (date) | `verified[].at` | Read as the date of the most recent verification event. |
 | `timestamp` | `generated.at` | Read as `generated.at` with unknown actor. |
+| any timestamp written as a bare date | the same key as a datetime with offset (§5.6) | Read as `T00:00:00Z` on that date. |
 
 Consumers MUST tolerate both generations. Validators SHOULD warn on the
 deprecated forms without failing the bundle.
@@ -680,14 +715,14 @@ where it came from with an `imported` link:
 links:
   - rel: imported
     to: data-eng/orders-events
-    at: 2026-09-26
+    at: 2026-09-26T00:00:00Z
     note: Copied at data-eng ref 7adc76e for offline use.
 ```
 
 - The copy keeps its own `id`, `generated` and `verified`. It does **not**
   inherit the source's trust tier: `verified` on the copy records who verified
   *the copy*. A consumer that wants the source's trust follows the link.
-- The copy SHOULD carry the source's `stale_after` or an earlier date, never a
+- The copy SHOULD carry the source's `stale_after` or an earlier instant, never a
   later one.
 - This is the answer AI-XF gives to OKF issue #15.
 
@@ -815,10 +850,13 @@ A conformant consumer:
 - MUST NOT reject a bundle for: missing optional fields, unknown `type` values,
   unknown frontmatter keys, unknown `rel` values, broken links, unresolvable
   qualified references, or a missing `index.md`/`manifest.ai-xf.yaml`.
-- MUST treat a broken link as tolerable — it MAY denote not-yet-written
-  knowledge or a bundle the consumer does not hold.
-- SHOULD resolve link targets by `id` first, then by bundle-relative path;
-  qualified references resolve by namespace first (§9.2).
+- MUST treat a broken link as tolerable. It may denote knowledge not yet
+  written, a concept removed without a tombstone, or a bundle the consumer
+  does not hold; a consumer MUST NOT report which of these it is unless the
+  bundle says so (a tombstone, §6.6).
+- SHOULD resolve link targets by `id` first, then by bundle-relative path,
+  then by an `aliases` match (§6.6); qualified references resolve by
+  namespace first (§9.2).
 - SHOULD synthesise inverse edges (§6.3).
 - MUST preserve unknown keys when round-tripping a document.
 - MUST tolerate v0.1-generation fields per the mapping in §7.3.
@@ -861,6 +899,28 @@ their own sanitisation before publishing a bundle — and SHOULD remember that
 Bundles declare the version they target via `manifest.ai-xf.yaml`'s `ai-xf` key.
 Minor versions remain readable by earlier consumers under the permissive rules
 of §11.1.
+
+### Changelog — v0.4.3 (2026-10-02)
+
+**OKF alignment:** every timestamp is an ISO 8601 datetime with an explicit
+offset (§5.6), following OKF PR #6. Bare dates are still read, as 00:00 UTC,
+with a validator warning. The examples in this document, `examples/` and the
+experiment fixtures now use the datetime form.
+
+**Retirement:** a concept that leaves a bundle SHOULD become a tombstone
+(§6.6); a regenerating producer SHOULD retire concepts whose source has gone.
+A broken link is no longer described as "not-yet-written knowledge": in E8,
+11 of 12 such targets had been archived or lay outside the export (§11.1).
+The `aliases` fallback (§6.6) is now in the consumer resolution order.
+
+**Reference validator** (no other normative change): implements the `aliases`
+fallback, for local and qualified references; resolves bundle-relative `to`
+paths (§6.1); matches body links to the concept they land on, so a file moved
+with its `id` unchanged no longer fails the mirroring rule (§5.2, §6.4); and
+`--stats` gains freshness numbers (concept files no `index.md` lists, live
+edges into retired concepts, concepts replaced but not deprecated, sources
+changed after their last verification) and federation vocabulary use by rel
+pair. Evidence in `experiments/e8-freshness/`.
 
 ### Changelog — v0.4.2 (2026-09-27)
 

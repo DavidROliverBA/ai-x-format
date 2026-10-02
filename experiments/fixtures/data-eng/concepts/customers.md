@@ -10,7 +10,7 @@ generated:
   by: human:sam-patel
   at: 2026-03-15T09:00:00Z
 status: draft
-stale_after: 2026-12-15
+stale_after: 2026-12-15T00:00:00Z
 
 provenance:
   confidence: medium

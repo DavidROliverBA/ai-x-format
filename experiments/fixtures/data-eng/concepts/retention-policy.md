@@ -10,9 +10,9 @@ generated:
   at: 2026-02-01T09:00:00Z
 verified:
   - by: human:priya-shah
-    at: 2026-02-05
+    at: 2026-02-05T00:00:00Z
 status: stable
-stale_after: 2027-02-01
+stale_after: 2027-02-01T00:00:00Z
 sources:
   - id: data-retention-standard
     resource: https://internal.example.com/data-eng/policies/retention-standard

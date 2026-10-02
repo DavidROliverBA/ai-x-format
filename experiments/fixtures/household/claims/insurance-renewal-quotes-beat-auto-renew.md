@@ -9,7 +9,7 @@ generated:
   by: human:household-admin
   at: 2026-03-05T09:00:00Z
 status: draft
-stale_after: 2026-11-05
+stale_after: 2026-11-05T00:00:00Z
 sources:
   - id: renewal-price-log
     resource: https://example.com/household/renewal-price-log

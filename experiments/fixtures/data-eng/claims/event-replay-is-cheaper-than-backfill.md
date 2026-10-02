@@ -9,7 +9,7 @@ generated:
   by: human:sam-patel
   at: 2026-08-12T09:00:00Z
 status: draft
-stale_after: 2026-12-12
+stale_after: 2026-12-12T00:00:00Z
 sources:
   - id: replay-cost-analysis
     resource: https://internal.example.com/data-eng/analysis/replay-vs-backfill-cost
@@ -27,7 +27,7 @@ links:
     to: retention-policy
     state: open
     by: human:sam-patel
-    at: 2026-08-12
+    at: 2026-08-12T00:00:00Z
     note: The policy's disaster-recovery approach assumes batch backfill is the cheaper recovery path; this analysis disagrees for the orders table specifically. Both kept; awaiting a ruling.
 ---
 

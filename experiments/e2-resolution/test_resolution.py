@@ -199,5 +199,247 @@ class FederationResolution(unittest.TestCase):
         self.assertNotIn("something", collisions)
 
 
+FRESHNESS_FILES = {
+    # bundle x: one live concept, one ghost the index does not list, one
+    # retired tombstone (no successor), one redirect tombstone (successor).
+    "x/manifest.ai-xf.yaml": "ai-xf: \"0.4\"\nname: x\nnamespace: x\n",
+    "x/index.md": ("# x\n\n- [Live](./concepts/live.md)\n- [New](./concepts/new.md)\n\n## Retired\n\n"
+                   "- [Gone](./concepts/gone.md)\n- [Old](./concepts/old.md)\n"),
+    "x/concepts/live.md": ("---\ntype: Concept\nid: live\nstatus: stable\nlinks:\n- rel: relates-to\n  to: gone\n"
+                           "- rel: relates-to\n  to: old\n- rel: supersedes\n  to: gone\n---\n\n"
+                           "[Gone](./gone.md) [Old](./old.md)\n"),
+    "x/concepts/new.md": "---\ntype: Concept\nid: new\nstatus: stable\n---\n\nNew.\n",
+    "x/concepts/gone.md": "---\ntype: Concept\nid: gone\nstatus: deprecated\n---\n\nRetired.\n",
+    "x/concepts/old.md": ("---\ntype: Concept\nid: old\nstatus: deprecated\nlinks:\n- rel: superseded-by\n"
+                          "  to: new\n---\n\n[New](./new.md)\n"),
+    "x/concepts/ghost.md": "---\ntype: Concept\nid: ghost\nstatus: stable\n---\n\nLeft behind.\n",
+    # bundle y: a live edge into x's retired concept, written as a qualified ref.
+    "y/manifest.ai-xf.yaml": "ai-xf: \"0.4\"\nname: y\nnamespace: y\n",
+    "y/concepts/far.md": "---\ntype: Concept\nid: far\nstatus: stable\nlinks:\n- rel: references\n  to: x/gone\n---\n\n[Gone](x/gone)\n",
+    "types.json": '{"version": 1, "values": [{"name": "Concept"}, {"name": "Policy"}]}',
+    "rels.json": ('{"version": 1, "values": [{"name": "relates-to"}, {"name": "part-of"}, {"name": "has-part"},'
+                  ' {"name": "references"}, {"name": "referenced-by"}, {"name": "supersedes"}]}'),
+    "federation.ai-xf.yaml": ("ai-xf: \"0.4\"\nfederation: fresh\nvocabularies:\n  types: ./types.json\n"
+                              "  rels: ./rels.json\nbundles:\n  - namespace: x\n    source: path\n    path: ./x\n"
+                              "  - namespace: y\n    source: path\n    path: ./y\n"),
+}
+
+
+class FreshnessStats(unittest.TestCase):
+    """`--stats` freshness and vocabulary numbers (E8). Informational only:
+    none of them may change pass/fail."""
+
+    @classmethod
+    def setUpClass(cls):
+        import tempfile
+        cls.tmp = Path(tempfile.mkdtemp(prefix="ai-xf-fresh-"))
+        for rel, text in FRESHNESS_FILES.items():
+            (cls.tmp / rel).parent.mkdir(parents=True, exist_ok=True)
+            (cls.tmp / rel).write_text(text, encoding="utf-8")
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def stats(self, bundle: str, use_pyyaml: bool = False) -> tuple[int, dict]:
+        rc, data = run_validator([bundle, "--federation", "federation.ai-xf.yaml", "--stats", "--json"],
+                                 use_pyyaml=use_pyyaml, cwd=self.tmp)
+        return rc, data["stats"]
+
+    def test_unindexed_and_edges_into_retired(self):
+        rc, st = self.stats("x")
+        self.assertEqual(rc, 0)                       # never affects pass/fail
+        fr = st["freshness"]
+        self.assertEqual(fr["unindexed"], ["concepts/ghost.md"])
+        self.assertEqual(fr["edges_into_retired"], 1)    # live -> gone; `supersedes` is not counted
+        self.assertEqual(fr["edges_into_redirects"], 1)  # live -> old (superseded-by new)
+        self.assertTrue(any("listed in no index.md" in f for f in st["flags"]))
+
+    def test_no_index_means_unknown_not_zero(self):
+        _, st = self.stats("y")
+        self.assertIsNone(st["freshness"]["unindexed"])
+
+    def test_cross_bundle_edge_into_retired(self):
+        _, st = self.stats("y")
+        self.assertEqual(st["federation"]["cross_bundle_edges_into_retired"], 1)
+
+    def test_vocabulary_unused_by_pair(self):
+        _, st = self.stats("x")
+        vu = st["federation"]["vocabulary"]
+        self.assertEqual(vu["types_unused"], ["Policy"])
+        # 6 names, 4 pairs; references/referenced-by and supersedes are used,
+        # so only has-part/part-of is unused. relates-to is used too.
+        self.assertEqual(vu["rel_pairs_declared"], 4)
+        self.assertEqual(vu["rel_pairs_unused"], ["has-part/part-of"])
+
+    def test_parsers_agree(self):
+        if not HAS_UV:
+            self.skipTest("uv not available")
+        for b in ("x", "y"):
+            self.assertEqual(self.stats(b), self.stats(b, use_pyyaml=True))
+
+
+class LinkForms(unittest.TestCase):
+    """Link forms the spec allows but the v0.4.2 validator mishandled (found
+    while testing E8): a concept file moved with its id unchanged (§5.2), a
+    bundle-relative path in `to` (§6.1), and markdown destinations written
+    with angle brackets, a title, or %-encoding. Core findings, not stats."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp(prefix="ai-xf-links-"))
+        shutil.copytree(EXAMPLES, self.tmp / "ex")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def validate(self, use_pyyaml: bool = False) -> tuple[int, dict]:
+        return run_validator([str(self.tmp / "ex"), "--level", "3", "--stats", "--json"], use_pyyaml=use_pyyaml)
+
+    def edit(self, rel: str, old: str, new: str) -> None:
+        f = self.tmp / "ex" / rel
+        text = f.read_text(encoding="utf-8")
+        self.assertIn(old, text, rel)
+        f.write_text(text.replace(old, new), encoding="utf-8")
+
+    def move_orders_table(self) -> None:
+        """What a curator does: move the file, keep the id, fix the body links."""
+        ex = self.tmp / "ex"
+        (ex / "concepts" / "data").mkdir()
+        (ex / "concepts" / "orders-table.md").rename(ex / "concepts" / "data" / "orders.md")
+        for f in ex.rglob("*.md"):
+            t = f.read_text(encoding="utf-8")
+            t2 = t.replace("./concepts/orders-table.md", "./concepts/data/orders.md") \
+                  .replace("(./orders-table.md)", "(./data/orders.md)")
+            if t2 != t:
+                f.write_text(t2, encoding="utf-8")
+
+    def test_moved_file_keeps_id_and_passes(self):
+        self.move_orders_table()
+        rc, data = self.validate()
+        self.assertEqual(rc, 0, data["findings"])
+        self.assertEqual(data["findings"], [])
+        self.assertEqual(data["stats"]["freshness"]["unindexed"], [])
+
+    def test_bundle_relative_path_in_to(self):
+        self.edit("concepts/payment-service.md", "to: orders-table", "to: concepts/orders-table.md")
+        rc, data = self.validate()
+        self.assertEqual(rc, 0)
+        self.assertEqual(find_findings(data["findings"], "does not resolve"), [])
+
+    def test_link_destination_forms(self):
+        self.edit("index.md", "(./concepts/orders-table.md)", "(<./concepts/orders-table.md> \"Orders\")")
+        self.edit("index.md", "(./people/jane-doe.md)", "(./people/jane%2Ddoe.md)")
+        self.edit("concepts/payment-service.md", "(./orders-table.md)", "(<./orders-table.md>)")
+        rc, data = self.validate()
+        self.assertEqual(rc, 0, data["findings"])
+        self.assertEqual(data["stats"]["freshness"]["unindexed"], [])
+
+    def test_path_form_edge_into_retired_is_counted(self):
+        # payments-api is a merge tombstone (has a successor): a redirect, by id or by path
+        _, before = self.validate()
+        # payment-service is itself deprecated, and edges from retired concepts are not counted
+        self.edit("concepts/payment-service-v2.md", "to: orders-table", "to: concepts/payments-api.md")
+        self.edit("concepts/payment-service-v2.md", "(./orders-table.md)", "(./payments-api.md)")
+        _, after = self.validate()
+        self.assertEqual(after["stats"]["freshness"]["edges_into_redirects"],
+                         before["stats"]["freshness"]["edges_into_redirects"] + 1)
+
+    def test_parsers_agree(self):
+        if not HAS_UV:
+            self.skipTest("uv not available")
+        self.move_orders_table()
+        self.assertEqual(normalize_bundle_field(self.validate()[1]),
+                         normalize_bundle_field(self.validate(use_pyyaml=True)[1]))
+
+
+def write_tree(root: Path, files: dict) -> None:
+    for rel, text in files.items():
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text(text, encoding="utf-8")
+
+
+class TimestampsAliasesAndRetirement(unittest.TestCase):
+    """v0.4.3: timestamps are datetimes with an offset (OKF PR #6, §5.6); an
+    unknown id falls back to `aliases` (§6.6); an unresolved link no longer
+    claims to be "not-yet-written"; and two stats from existing fields:
+    replaced-but-live concepts and sources changed since verification."""
+
+    FILES = {
+        "t/manifest.ai-xf.yaml": "ai-xf: \"0.4\"\nname: t\nnamespace: t\n",
+        "t/concepts/dated.md": ("---\ntype: Concept\nid: dated\nstale_after: 2026-01-01\n"
+                                "verified:\n- by: human:x\n  at: 2026-01-01T09:00:00\n---\n\nx\n"),
+        "t/concepts/timed.md": ("---\ntype: Concept\nid: timed\nstale_after: 2099-01-01T00:00:00+01:00\n"
+                                "generated:\n  by: human:x\n  at: 2026-02-01T00:00:00Z\n"
+                                "verified:\n- by: human:x\n  at: '2026-01-01T09:00:00Z'\n"
+                                "sources:\n- resource: https://example.com/a\n  last_modified: 2026-03-01T00:00:00Z\n---\n\nx\n"),
+        "t/concepts/new.md": ("---\ntype: Concept\nid: new\nstatus: stable\naliases: [old-name]\n"
+                              "links:\n- rel: supersedes\n  to: old\n---\n\n[Old](./old.md)\n"),
+        "t/concepts/old.md": "---\ntype: Concept\nid: old\nstatus: stable\n---\n\nStill live.\n",
+        "t/concepts/linker.md": ("---\ntype: Concept\nid: linker\nstatus: stable\nlinks:\n"
+                                 "- rel: relates-to\n  to: old-name\n- rel: relates-to\n  to: nowhere\n---\n\n"
+                                 "[New](./new.md) [Nowhere](./nowhere.md)\n"),
+        "u/manifest.ai-xf.yaml": "ai-xf: \"0.4\"\nname: u\nnamespace: u\n",
+        "u/concepts/far.md": ("---\ntype: Concept\nid: far\nstatus: stable\nlinks:\n- rel: references\n"
+                              "  to: t/old-name\n---\n\nx\n"),
+        "federation.ai-xf.yaml": ("ai-xf: \"0.4\"\nfederation: v043\nbundles:\n  - namespace: t\n    source: path\n"
+                                  "    path: ./t\n  - namespace: u\n    source: path\n    path: ./u\n"),
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        import tempfile
+        cls.tmp = Path(tempfile.mkdtemp(prefix="ai-xf-v043-"))
+        write_tree(cls.tmp, cls.FILES)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def run_t(self, *extra, use_pyyaml=False, bundle="t"):
+        return run_validator([bundle, "--level", "2", "--stats", "--json", "--today", "2026-06-01", *extra],
+                             use_pyyaml=use_pyyaml, cwd=self.tmp)
+
+    def test_date_only_and_offsetless_timestamps_warn(self):
+        rc, d = self.run_t()
+        self.assertEqual(rc, 0)
+        msgs = [f["message"] for f in d["findings"] if f["file"] == "concepts/dated.md"]
+        self.assertTrue(any(m.startswith("`stale_after: 2026-01-01`") for m in msgs), msgs)
+        self.assertTrue(any(m.startswith("`verified[0].at:") for m in msgs), msgs)
+        self.assertEqual([f for f in d["findings"] if f["file"] == "concepts/timed.md"], [])
+
+    def test_staleness_compares_instants(self):
+        _, d = self.run_t()
+        self.assertEqual(d["stats"]["staleness"]["past_stale_after"], 1)   # dated only
+
+    def test_alias_fallback_and_wording(self):
+        _, d = self.run_t()
+        msgs = [f["message"] for f in d["findings"] if f["file"] == "concepts/linker.md"]
+        self.assertIn("links[0] `to: old-name` resolves only as an alias of `new` (§6.6) — link to `new`", msgs)
+        self.assertTrue(any("`to: nowhere` does not resolve (tolerated:" in m for m in msgs), msgs)
+        self.assertFalse(any("not-yet-written" in m for m in msgs))
+        self.assertFalse(any(f["severity"] == "error" for f in d["findings"]))   # alias target mirrored
+
+    def test_qualified_alias_fallback(self):
+        _, d = self.run_t("--federation", "federation.ai-xf.yaml", bundle="u")
+        msgs = [f["message"] for f in d["findings"]]
+        self.assertIn("links[0] `to: t/old-name` resolves only as an alias of `t/new` (§6.6) — link to `t/new`", msgs)
+        self.assertEqual(d["stats"]["federation"]["qualified_refs"], {"resolved": 1, "unresolved": 0})
+
+    def test_replaced_but_live_and_source_changed(self):
+        _, d = self.run_t()
+        fr = d["stats"]["freshness"]
+        self.assertEqual(fr["superseded_not_deprecated"], ["old"])
+        self.assertEqual(fr["sources_changed_since_verified"], ["timed"])
+        self.assertEqual(fr["changed_since_verified"], ["timed"])   # generated after its check
+
+    def test_parsers_agree(self):
+        if not HAS_UV:
+            self.skipTest("uv not available")
+        for b, extra in (("t", ()), ("u", ("--federation", "federation.ai-xf.yaml"))):
+            self.assertEqual(normalize_bundle_field(self.run_t(*extra, bundle=b)[1]),
+                             normalize_bundle_field(self.run_t(*extra, bundle=b, use_pyyaml=True)[1]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -10,9 +10,9 @@ generated:
   at: 2026-02-05T09:00:00Z
 verified:
   - by: human:household-admin
-    at: 2026-02-05
+    at: 2026-02-05T10:00:00Z
 status: stable
-stale_after: 2027-02-05
+stale_after: 2027-02-05T00:00:00Z
 sources:
   - id: repair-log
     resource: https://example.com/household/repair-log-2023-2026

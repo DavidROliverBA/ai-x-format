@@ -23,7 +23,10 @@ Usage:
 
 `--stats` reports curation health (SPEC §6.5, §7.2, §10.2): trust tiers,
 staleness, open and resolved contradictions, per-claim citation coverage, the
-spread of asserted confidence, and the Update:Creation ratio from log.md. It
+spread of asserted confidence, the Update:Creation ratio from log.md, and
+freshness (E8): concept files no index.md lists, and live edges into retired
+concepts. With `--federation` it adds edges into other bundles' retired
+concepts and the federation vocabulary declared but unused (by rel pair). It
 never affects pass/fail — it measures whether a bundle is compounding, which
 is a question of policy, not conformance.
 
@@ -74,6 +77,19 @@ CORE_RELS = {
     # added in v0.4
     "imported", "exported-to",
 }
+
+# Inverse column of SPEC §6.2, including the registered extension rels. A rel
+# pair counts as used when either direction is written (§6.3 synthesises the
+# other), so `--stats` reports unused vocabulary by pair, never by inverse name.
+REL_INVERSES = {
+    "relates-to": "relates-to", "part-of": "has-part", "depends-on": "depended-on-by",
+    "references": "referenced-by", "derived-from": "source-of", "supersedes": "superseded-by",
+    "contradicts": "contradicts", "supports": "supported-by", "merged-into": "merged-from",
+    "split-from": "split-into", "imported": "exported-to", "authored-by": "author-of",
+    "describes": "described-by", "depicts": "depicted-in", "remediates": "remediated-by",
+    "discusses": "discussed-in",
+}
+REL_INVERSES.update({inv: fwd for fwd, inv in list(REL_INVERSES.items())})
 
 SUCCESSOR_RELS = {"superseded-by", "merged-into"}
 OKF_STATUS = {"draft", "stable", "deprecated"}
@@ -261,22 +277,41 @@ def parse_concept(path: Path):
     return fm, "", body
 
 
-def body_link_targets(body: str, concept_dir: Path, bundle: Path):
+def body_link_targets(body: str, concept_dir: Path, bundle: Path, path_to_id: dict | None = None):
     """Return the set of normalised targets (id-or-relpath) linked in the body."""
     targets = set()
     for raw in MD_LINK_RE.findall(body):
-        tgt = raw.split("#")[0].strip()
+        tgt = link_destination(raw)
         if not tgt or tgt.startswith(("http://", "https://", "mailto:")):
             continue
         targets.add(tgt)
         # also record the resolved id (filename stem) for id-based matching
         stem = Path(tgt).stem
         targets.add(stem)
+        # and the id of the concept file the link actually lands on, so a file
+        # moved or renamed with its id unchanged still mirrors (SPEC §5.2)
+        if path_to_id:
+            for cand in (concept_dir / tgt, bundle / tgt):
+                hit = path_to_id.get(cand.resolve())
+                if hit:
+                    targets.add(hit)
         # ai-xf://<namespace>/<id> (federation-qualified, SPEC §9.2) also
         # mirrors a bare `namespace/id` link target with the same meaning.
         if tgt.startswith("ai-xf://"):
             targets.add(tgt[len("ai-xf://"):])
     return targets
+
+
+def link_destination(raw: str) -> str:
+    """The path part of a markdown link destination: `<a b.md>` unwrapped, a
+    trailing `"title"` dropped, the `#fragment` removed, `%20` decoded."""
+    from urllib.parse import unquote
+    raw = raw.strip()
+    if raw.startswith("<") and ">" in raw:
+        raw = raw[1:raw.index(">")]
+    else:
+        raw = raw.split()[0] if raw.split() else ""
+    return unquote(raw.split("#")[0])
 
 
 def as_list(v):
@@ -307,6 +342,69 @@ def actors_of(fm: dict):
             yield f"links[{i}].resolved.by", res["by"]
 
 
+def timestamps_of(fm: dict):
+    """Yield (where, value) for every timestamp-valued key in a concept: the
+    OKF ones (§7.1) and the AI-XF edge ones (§6.1). SPEC §5.6."""
+    yield "stale_after", fm.get("stale_after")
+    gen = fm.get("generated")
+    if isinstance(gen, dict):
+        yield "generated.at", gen.get("at")
+    for i, v in enumerate(as_list(fm.get("verified"))):
+        if isinstance(v, dict):
+            yield f"verified[{i}].at", v.get("at")
+    windows = [("usage_window", fm.get("usage_window"))]
+    for i, src in enumerate(as_list(fm.get("sources"))):
+        if isinstance(src, dict):
+            yield f"sources[{i}].last_modified", src.get("last_modified")
+            windows.append((f"sources[{i}].usage_window", src.get("usage_window")))
+    for where, w in windows:
+        if isinstance(w, dict):
+            yield f"{where}.from", w.get("from")
+            yield f"{where}.to", w.get("to")
+    for i, ln in enumerate(as_list(fm.get("links"))):
+        if not isinstance(ln, dict):
+            continue
+        yield f"links[{i}].at", ln.get("at")
+        res = ln.get("resolved")
+        if isinstance(res, dict):
+            yield f"links[{i}].resolved.at", res.get("at")
+        for j, v in enumerate(as_list(ln.get("verified"))):
+            if isinstance(v, dict):
+                yield f"links[{i}].verified[{j}].at", v.get("at")
+
+
+OFFSET_DT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|z|[+-]\d{2}(:?\d{2})?)$")
+
+
+def has_offset(v) -> bool:
+    """An ISO 8601 datetime with an explicit UTC offset (OKF v0.2, PR #6).
+    PyYAML hands back datetime objects, the fallback parser strings: both
+    must give the same answer."""
+    if isinstance(v, datetime):
+        return v.tzinfo is not None
+    if isinstance(v, date):
+        return False
+    return bool(OFFSET_DT_RE.match(str(v).strip()))
+
+
+def to_instant(v):
+    """A timestamp as an aware UTC datetime. A bare date, or a datetime with
+    no offset, is read as UTC (the date at 00:00), the legacy reading."""
+    if v is None:
+        return None
+    if isinstance(v, datetime):
+        return v if v.tzinfo else v.replace(tzinfo=timezone.utc)
+    if isinstance(v, date):
+        return datetime(v.year, v.month, v.day, tzinfo=timezone.utc)
+    sv = str(v).strip()
+    try:
+        dt = datetime.fromisoformat(sv[:-1] + "+00:00" if sv[-1:] in "Zz" else sv)
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except ValueError:
+        d = to_date(sv)
+        return datetime(d.year, d.month, d.day, tzinfo=timezone.utc) if d else None
+
+
 def to_date(v):
     if isinstance(v, datetime):
         return v.date()
@@ -331,9 +429,12 @@ FOOTNOTE_REF_RE = re.compile(r"\[\^([^\]]+)\](?!:)")
 LOG_ENTRY_RE = re.compile(r"^\s*[-*]\s+\*\*([A-Za-z]+)\*\*", re.MULTILINE)
 
 
-def collect_stats(bundle: Path, today: date) -> dict:
-    """Curation-health numbers. Informational: never affects conformance."""
+def collect_stats(bundle: Path, now) -> dict:
+    """Curation-health numbers. Informational: never affects conformance.
+    `now` is the instant `stale_after` is compared with (a date means 00:00 UTC)."""
+    now = to_instant(now)
     concepts = {}
+    paths = {}
     for p in sorted(bundle.rglob("*.md")):
         if p.name in RESERVED_MD:
             continue
@@ -342,6 +443,7 @@ def collect_stats(bundle: Path, today: date) -> dict:
             continue
         cid = str(fm.get("id") or p.relative_to(bundle))
         concepts[cid] = (fm, body)
+        paths[cid] = p.resolve()
 
     n = len(concepts)
     status = Counter(str(fm.get("status") or "stable") for fm, _ in concepts.values())
@@ -358,10 +460,10 @@ def collect_stats(bundle: Path, today: date) -> dict:
         prov = fm.get("provenance")
         if isinstance(prov, dict) and prov.get("confidence"):
             conf[str(prov["confidence"])] += 1
-        sa = to_date(fm.get("stale_after"))
+        sa = to_instant(fm.get("stale_after"))
         if sa is None:
             no_stale += 1
-        elif today >= sa and str(fm.get("status")) != "deprecated":
+        elif now >= sa and str(fm.get("status")) != "deprecated":
             past_stale += 1
         src_ids = {str(s["id"]) for s in as_list(fm.get("sources"))
                    if isinstance(s, dict) and s.get("id")}
@@ -395,6 +497,79 @@ def collect_stats(bundle: Path, today: date) -> dict:
                 not any(str(ln.get("rel")) in SUCCESSOR_RELS for ln in links):
             retired.append(cid)
 
+    # Freshness (E8). A concept file no index.md lists was not written by the
+    # producer that regenerated the index: a ghost of an earlier export, or never
+    # indexed. Only meaningful when the bundle has an index at all.
+    indexes = sorted(bundle.rglob("index.md"))
+    unindexed = None
+    if indexes:
+        listed = set()
+        for ip in indexes:
+            for raw in MD_LINK_RE.findall(ip.read_text(encoding="utf-8")):
+                tgt = link_destination(raw)
+                if tgt and not tgt.startswith(("http://", "https://", "mailto:")):
+                    listed.add((ip.parent / tgt).resolve())
+        unindexed = sorted(str(paths[c].relative_to(bundle.resolve())) for c in concepts
+                           if paths[c] not in listed)
+    # Live edges into retired concepts: a successor means a redirect (§6.6);
+    # none means the edge points at something the bundle says is gone.
+    is_retired = {cid: not any(str(ln.get("rel")) in SUCCESSOR_RELS
+                               for ln in as_list(fm.get("links")) if isinstance(ln, dict))
+                  for cid, (fm, _) in concepts.items() if str(fm.get("status")) == "deprecated"}
+    into_retired = into_redirect = 0
+    by_path = {path: cid for cid, path in paths.items()}
+    def local_id(to: str) -> str:
+        """`to` is an id or a bundle-relative path (SPEC §6.1)."""
+        if to in concepts:
+            return to
+        for cand in (bundle / to, bundle / f"{to}.md"):
+            hit = by_path.get(cand.resolve())
+            if hit:
+                return hit
+        return to
+    for cid, (fm, _) in concepts.items():
+        if str(fm.get("status")) == "deprecated":
+            continue
+        for ln in as_list(fm.get("links")):
+            to = local_id(str(ln.get("to") or "")) if isinstance(ln, dict) else ""
+            if to in is_retired and str(ln.get("rel")) not in SUCCESSOR_RELS | {"supersedes", "merged-from"}:
+                if is_retired[to]:
+                    into_retired += 1
+                else:
+                    into_redirect += 1
+
+    # Supersession without retirement: something replaces this concept (a
+    # `supersedes`/`merged-into` edge points at it, or it names its own
+    # successor) but it is not `status: deprecated` (§6.2, §6.6).
+    replaced = set()
+    for cid, (fm, _) in concepts.items():
+        for ln in as_list(fm.get("links")):
+            if not isinstance(ln, dict):
+                continue
+            to = local_id(str(ln.get("to") or ""))
+            if str(ln.get("rel")) in ("supersedes", "merged-from") and to in concepts:
+                replaced.add(to)
+            if str(ln.get("rel")) in SUCCESSOR_RELS:
+                replaced.add(cid)
+    superseded_live = sorted(c for c in replaced if str(concepts[c][0].get("status")) != "deprecated")
+    # Event-based staleness from OKF fields alone: a source that changed after
+    # the concept was last verified (`sources[].last_modified` > `verified[].at`).
+    # Likewise the content itself: `generated.at` marks its last meaningful
+    # change (OKF §5.2), so a later `generated.at` means it changed after the
+    # latest check. OKF keeps the tier; a consumer may not (KnowledgeX, E9).
+    source_changed, content_changed = [], []
+    for cid, (fm, _) in concepts.items():
+        checked = [t for v in as_list(fm.get("verified")) if isinstance(v, dict)
+                   for t in [to_instant(v.get("at"))] if t]
+        gen = fm.get("generated")
+        gen_at = to_instant(gen.get("at")) if isinstance(gen, dict) else None
+        if checked and gen_at and gen_at > max(checked):
+            content_changed.append(cid)
+        changed = [t for s_ in as_list(fm.get("sources")) if isinstance(s_, dict)
+                   for t in [to_instant(s_.get("last_modified"))] if t]
+        if checked and changed and max(changed) > max(checked):
+            source_changed.append(cid)
+
     cstate = Counter(contradictions.values())
     log_words = Counter()
     for lp in bundle.rglob("log.md"):
@@ -414,9 +589,25 @@ def collect_stats(bundle: Path, today: date) -> dict:
                      "disagreed, or the curator is reconciling silently (SPEC §6.5)")
     if created >= 10 and updated == 0:
         flags.append("log.md records creations but no updates — accumulating, not compounding")
+    if unindexed:
+        flags.append(f"{len(unindexed)} concept file(s) listed in no index.md — left behind by an earlier "
+                     "export, or never indexed; retire them as tombstones (SPEC §6.6) or index them")
+    if superseded_live:
+        flags.append(f"{len(superseded_live)} concept(s) replaced by another but not `status: deprecated`: "
+                     f"{', '.join(superseded_live[:5])}" + (" …" if len(superseded_live) > 5 else "")
+                     + " (SPEC §6.6)")
+    if content_changed:
+        flags.append(f"{len(content_changed)} concept(s) changed after they were last verified "
+                     "(`generated.at` > `verified[].at`) — re-verify them, or some consumers will treat them as unverified")
+    if source_changed:
+        flags.append(f"{len(source_changed)} concept(s) whose sources changed after they were last verified "
+                     "(`sources[].last_modified` > `verified[].at`) — re-check them")
+    if into_retired:
+        flags.append(f"{into_retired} edge(s) from live concepts point at retired concepts with no "
+                     "successor — re-point or drop them (SPEC §6.6)")
 
     return {
-        "as_of": today.isoformat(),
+        "as_of": now.date().isoformat(),
         "concepts": n,
         "status": dict(status),
         "trust_tiers": dict(tiers),
@@ -431,6 +622,12 @@ def collect_stats(bundle: Path, today: date) -> dict:
                                "citing_per_claim": cited,
                                "footnotes_matching_no_source": orphan_footnotes},
         "confidence": dict(conf),
+        "freshness": {"unindexed": unindexed,
+                      "edges_into_retired": into_retired,
+                      "edges_into_redirects": into_redirect,
+                      "superseded_not_deprecated": superseded_live,
+                      "sources_changed_since_verified": source_changed,
+                      "changed_since_verified": content_changed},
         "withheld_sources": withheld_total,
         "verified_edges": verified_edges,
         "log": {"entries": known,
@@ -458,6 +655,17 @@ def print_stats(s: dict):
     print(f"  per-claim cites:   {pc['citing_per_claim']} of {pc['concepts_with_sources']} sourced concepts"
           + (f"; {pc['footnotes_matching_no_source']} footnote(s) match no source id"
              if pc["footnotes_matching_no_source"] else ""))
+    fr = s["freshness"]
+    unidx = "no index.md" if fr["unindexed"] is None else f"{len(fr['unindexed'])} concept file(s) in no index.md"
+    print(f"  freshness:         {unidx}; {fr['edges_into_retired']} live edge(s) into retired concepts, "
+          f"{fr['edges_into_redirects']} into redirects")
+    if fr["superseded_not_deprecated"] or fr["sources_changed_since_verified"] or fr["changed_since_verified"]:
+        print(f"    replaced, live:  {len(fr['superseded_not_deprecated'])}; changed since verified: "
+              f"{len(fr['changed_since_verified'])}; sources changed since verified: "
+              f"{len(fr['sources_changed_since_verified'])}")
+    if fr["unindexed"]:
+        print(f"    unindexed:       {', '.join(fr['unindexed'][:10])}"
+              + (f" … (+{len(fr['unindexed']) - 10})" if len(fr["unindexed"]) > 10 else ""))
     print(f"  confidence:        {fmt(s['confidence'])}")
     if s.get("withheld_sources") or s.get("verified_edges"):
         print(f"  redaction/edges:   {s.get('withheld_sources', 0)} source(s) withheld, {s.get('verified_edges', 0)} edge(s) with verified events")
@@ -480,6 +688,14 @@ def print_stats(s: dict):
         qr = fed["qualified_refs"]
         print(f"    qualified refs:    {qr['resolved']} resolved, {qr['unresolved']} unresolved")
         print(f"    unqualified cross-bundle resolutions (Foam rule): {fed['unqualified_cross_bundle_resolutions']}")
+        print(f"    edges into other bundles' retired concepts: {fed['cross_bundle_edges_into_retired']}")
+        vu = fed["vocabulary"]
+        if vu["types_declared"] is not None:
+            print(f"    types unused:      {len(vu['types_unused'])} of {vu['types_declared']}"
+                  + (f" ({', '.join(vu['types_unused'])})" if vu["types_unused"] else ""))
+        if vu["rel_pairs_declared"] is not None:
+            print(f"    rel pairs unused:  {len(vu['rel_pairs_unused'])} of {vu['rel_pairs_declared']}"
+                  + (f" ({', '.join(vu['rel_pairs_unused'])})" if vu["rel_pairs_unused"] else ""))
 
 
 # --- Federation loading (SPEC §9, experimental --federation flag) -----------
@@ -507,6 +723,25 @@ def find_repo_root(start: Path) -> Path | None:
         if (parent / ".git").exists():
             return parent
     return None
+
+
+def scan_bundle_aliases(bundle_root: Path) -> dict[str, str]:
+    """Map alias -> concept `id` for one bundle (SPEC §6.6 fallback). An alias
+    that is also an id in the bundle never shadows that id."""
+    ids, out = set(), {}
+    entries = []
+    for p in sorted(bundle_root.rglob("*.md")):
+        if p.name in RESERVED_MD:
+            continue
+        fm, _err, _body = parse_concept(p)
+        if isinstance(fm, dict) and fm.get("id"):
+            ids.add(str(fm["id"]))
+            entries.append((str(fm["id"]), as_list(fm.get("aliases"))))
+    for cid, als in entries:
+        for al in als:
+            if isinstance(al, str) and al not in ids:
+                out.setdefault(al, cid)
+    return out
 
 
 def scan_bundle_ids(bundle_root: Path) -> dict[str, Path]:
@@ -548,6 +783,7 @@ def load_federation(fed_path: Path):
     repo_root = find_repo_root(fed_dir)
 
     index: dict[str, dict[str, Path]] = {}
+    aliases: dict[str, dict[str, str]] = {}
     namespaces_seen: list[str] = []
     bundle_reports: list[dict] = []
 
@@ -628,6 +864,7 @@ def load_federation(fed_path: Path):
                 f"{where} bundle manifest declares namespace `{bundle_ns}`, federation entry says `{ns}`"))
 
         index[ns] = scan_bundle_ids(root)
+        aliases[ns] = scan_bundle_aliases(root)
         bundle_reports.append({"namespace": ns, "root": str(root), "ref": ref, "source": source})
 
     vocab_types = vocab_rels = None
@@ -655,14 +892,60 @@ def load_federation(fed_path: Path):
             except Exception:  # noqa: BLE001
                 pass  # not JSON of the {"version","values":[{"name"}]} shape — informational only
 
-    federation = {"index": index, "namespaces": namespaces_seen,
+    federation = {"index": index, "aliases": aliases, "namespaces": namespaces_seen,
                   "vocab_types": vocab_types, "vocab_rels": vocab_rels}
     return federation, findings, bundle_reports
 
 
-def federation_stats(federation: dict, bundle_reports: list[dict]) -> dict:
+def federation_stats(federation: dict, bundle_reports: list[dict], bundle: Path | None = None) -> dict:
     """`--stats --federation` block: SPEC-agnostic curation numbers about the
     federation itself, never affecting pass/fail."""
+    # Vocabulary declared vs used across every held bundle (E8). Zero uses is a
+    # report, not drift: a federation vocabulary is agreed, not induced (§9.3).
+    types_used, rels_used = Counter(), Counter()
+    retired: set[str] = set()        # "ns/id" of deprecated concepts with no successor
+    for b in bundle_reports:
+        root = Path(b["root"])
+        for p in sorted(root.rglob("*.md")):
+            if p.name in RESERVED_MD:
+                continue
+            fm, _err, _body = parse_concept(p)
+            if not isinstance(fm, dict):
+                continue
+            if fm.get("type"):
+                types_used[str(fm["type"])] += 1
+            links = [ln for ln in as_list(fm.get("links")) if isinstance(ln, dict)]
+            rels_used.update(str(ln.get("rel")) for ln in links if ln.get("rel"))
+            if str(fm.get("status")) == "deprecated" and \
+                    not any(str(ln.get("rel")) in SUCCESSOR_RELS for ln in links):
+                retired.add(f"{b['namespace']}/{fm.get('id') or p.stem}")
+    vt, vr = federation.get("vocab_types"), federation.get("vocab_rels")
+    pairs = None
+    if vr is not None:
+        pairs = sorted({tuple(sorted((r, REL_INVERSES.get(r, r)))) for r in vr})
+    def pair_label(pr):
+        return pr[0] if pr[0] == pr[1] else f"{pr[0]}/{pr[1]}"
+    vocabulary = {
+        "types_declared": len(vt) if vt is not None else None,
+        "types_unused": sorted(t for t in vt if not types_used[t]) if vt is not None else [],
+        "rel_pairs_declared": len(pairs) if pairs is not None else None,
+        "rel_pairs_unused": [pair_label(pr) for pr in pairs
+                             if not (rels_used[pr[0]] or rels_used[pr[1]])] if pairs is not None else [],
+    }
+    cross_retired = 0
+    if bundle is not None:
+        for p in sorted(bundle.rglob("*.md")):
+            if p.name in RESERVED_MD:
+                continue
+            fm, _err, _body = parse_concept(p)
+            if not isinstance(fm, dict) or str(fm.get("status")) == "deprecated":
+                continue
+            for ln in as_list(fm.get("links")):
+                to = str(ln.get("to") or "") if isinstance(ln, dict) else ""
+                if to.startswith("ai-xf://"):
+                    to = to[len("ai-xf://"):]
+                if QUALIFIED_RE.match(to) and to in retired:
+                    cross_retired += 1
     index = federation["index"]
     concepts_per_ns = {ns: len(ids) for ns, ids in index.items()}
     id_to_ns: dict[str, list[str]] = {}
@@ -678,6 +961,8 @@ def federation_stats(federation: dict, bundle_reports: list[dict]) -> dict:
         "colliding_ids": colliding_ids,
         "qualified_refs": {"resolved": st["qualified_resolved"], "unresolved": st["qualified_unresolved"]},
         "unqualified_cross_bundle_resolutions": st["foam_resolutions"],
+        "cross_bundle_edges_into_retired": cross_retired,
+        "vocabulary": vocabulary,
     }
 
 
@@ -757,6 +1042,27 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
             if not fm.get("id"):
                 findings.append(Finding("error", rel, "missing `id` (required at Level 1)"))
 
+    # Concept file -> id, so links that name a file (body links, path-form `to`)
+    # can be compared by identity rather than by filename (SPEC §5.2, §6.1).
+    path_to_id = {(bundle / r).resolve(): cid for cid, r in ids.items()}
+
+    # §6.6: a consumer resolving an unknown id SHOULD fall back to `aliases`.
+    alias_to_id: dict[str, str] = {}
+    for _rel, (afm, _b, _p) in sorted(parsed.items()):
+        aid = afm.get("id")
+        if not aid:
+            continue
+        for al in as_list(afm.get("aliases")):
+            if isinstance(al, str) and al not in ids:
+                alias_to_id.setdefault(al, str(aid))
+
+    def path_id(p: Path, to: str):
+        for cand in (p.parent / to, bundle / to):
+            hit = path_to_id.get(cand.resolve())
+            if hit:
+                return hit
+        return None
+
     # Level 2 checks
     if target_level >= 2:
         for rel, (fm, body, p) in parsed.items():
@@ -787,6 +1093,13 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                 if isinstance(src, dict) and not src.get("resource"):
                     hint = " — rename `uri` to `resource`" if src.get("uri") else ""
                     findings.append(Finding("warning", rel, f"sources[{idx}] has no `resource` (REQUIRED by OKF v0.2){hint}"))
+            # timestamps: ISO 8601 datetime with an explicit offset (SPEC §5.6,
+            # OKF v0.2 since PR #6). A bare date is still read (as 00:00 UTC).
+            for where, ts in timestamps_of(fm):
+                if ts is not None and not has_offset(ts):
+                    shown = ts.isoformat() if isinstance(ts, (date, datetime)) else ts   # same text under both parsers
+                    findings.append(Finding("warning", rel, f"`{where}: {shown}` is not an ISO 8601 datetime with an "
+                                            "offset (SPEC §5.6) — write e.g. `2027-02-20T00:00:00Z`; read as 00:00 UTC"))
             for where, actor in actors_of(fm):
                 if str(actor).startswith(BAD_ACTOR_PREFIXES):
                     findings.append(Finding("warning", rel, f"{where} `{actor}` is not OKF's actor convention — use `<producer>/<version>`, `human:<id>` or `process:<id>`"))
@@ -812,7 +1125,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
             if not isinstance(links, list):
                 findings.append(Finding("error", rel, "`links` must be a list"))
                 continue
-            btargets = body_link_targets(body, p.parent, bundle)
+            btargets = body_link_targets(body, p.parent, bundle, path_to_id)
             for idx, link in enumerate(links):
                 where = f"links[{idx}]"
                 if not isinstance(link, dict):
@@ -852,17 +1165,20 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                 if federation is None:
                     # resolve: id, or a path resolving to a known file
                     resolved = to in ids
-                    if not resolved:
-                        cand = (p.parent / to).resolve()
-                        resolved = cand.exists()
+                    if not resolved:     # a path: concept-relative, or bundle-relative (§6.1)
+                        resolved = (p.parent / to).exists() or (bundle / to).exists()
                     # federation-qualified reference (SPEC §9.2): namespace/id,
                     # not resolvable as a same-bundle path — tolerated, no mirror rule
                     if not resolved and QUALIFIED_RE.match(to) and to not in ids:
                         continue
-                    if not resolved:
-                        findings.append(Finding("warning", rel, f"{where} `to: {to}` does not resolve (tolerated — may be not-yet-written)"))
+                    via = None if resolved else alias_to_id.get(to)
+                    if via:
+                        findings.append(Finding("warning", rel, f"{where} `to: {to}` resolves only as an alias of `{via}` (§6.6) — link to `{via}`"))
+                    elif not resolved:
+                        findings.append(Finding("warning", rel, f"{where} `to: {to}` does not resolve (tolerated: not in this bundle, by id, path or alias)"))
                     # body-link mirroring (same-bundle targets only)
-                    mirrored = to in btargets or Path(to).stem in btargets
+                    mirrored = to in btargets or Path(to).stem in btargets or path_id(p, to) in btargets \
+                        or (via is not None and via in btargets)
                     if not mirrored:
                         findings.append(Finding("error", rel, f"{where} `to: {to}` not mirrored by a body markdown link (OKF-compat rule)"))
                     continue
@@ -882,18 +1198,27 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                     elif id_part in federation["index"].get(ns_part, {}):
                         federation["_stats"]["qualified_resolved"] += 1
                         # resolved cross-bundle — mirroring is SHOULD not MUST (§6.4), not checked
+                    elif id_part in federation.get("aliases", {}).get(ns_part, {}):
+                        federation["_stats"]["qualified_resolved"] += 1
+                        via = federation["aliases"][ns_part][id_part]
+                        findings.append(Finding("warning", rel, f"{where} `to: {to}` resolves only as an alias of `{ns_part}/{via}` (§6.6) — link to `{ns_part}/{via}`"))
                     else:
                         federation["_stats"]["qualified_unresolved"] += 1
                         findings.append(Finding("warning", rel, f"{where} `to: {to}` qualified reference does not resolve in the federation"))
                     continue
 
                 resolved = to in ids
-                if not resolved:
-                    cand = (p.parent / to).resolve()
-                    resolved = cand.exists()
+                if not resolved:         # a path: concept-relative, or bundle-relative (§6.1)
+                    resolved = (p.parent / to).exists() or (bundle / to).exists()
+                via = None if resolved else alias_to_id.get(to)
+                if via:
+                    findings.append(Finding("warning", rel, f"{where} `to: {to}` resolves only as an alias of `{via}` (§6.6) — link to `{via}`"))
+                    if not (to in btargets or via in btargets):
+                        findings.append(Finding("error", rel, f"{where} `to: {to}` not mirrored by a body markdown link (OKF-compat rule)"))
+                    continue
                 if resolved:
                     # genuinely same-bundle — the MUST-mirror rule applies (§6.4)
-                    mirrored = to in btargets or Path(to).stem in btargets
+                    mirrored = to in btargets or Path(to).stem in btargets or path_id(p, to) in btargets
                     if not mirrored:
                         findings.append(Finding("error", rel, f"{where} `to: {to}` not mirrored by a body markdown link (OKF-compat rule)"))
                     continue
@@ -909,8 +1234,8 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                         "then alphabetically); the producer should qualify the reference"))
                     continue
 
-                findings.append(Finding("warning", rel, f"{where} `to: {to}` does not resolve (tolerated — may be not-yet-written)"))
-                mirrored = to in btargets or Path(to).stem in btargets
+                findings.append(Finding("warning", rel, f"{where} `to: {to}` does not resolve (tolerated: not in any held bundle, by id, path or alias)"))
+                mirrored = to in btargets or Path(to).stem in btargets or path_id(p, to) in btargets
                 if not mirrored:
                     findings.append(Finding("error", rel, f"{where} `to: {to}` not mirrored by a body markdown link (OKF-compat rule)"))
 
@@ -1001,10 +1326,10 @@ def main():
     findings, errors = per_level[args.level]
     stats = None
     if args.stats:
-        today = to_date(args.today) or datetime.now(timezone.utc).date()
-        stats = collect_stats(bundle, today)
+        now = to_instant(args.today) if args.today else datetime.now(timezone.utc)
+        stats = collect_stats(bundle, now)
         if federation is not None:
-            stats["federation"] = federation_stats(federation, bundle_reports)
+            stats["federation"] = federation_stats(federation, bundle_reports, bundle)
 
     if args.json:
         out = {

@@ -13,7 +13,7 @@ AI-XF-aware agents read the same files and see more.
 |---|---|
 | **Spec** | [`SPEC.md`](./SPEC.md) — v0.4, draft |
 | **Experiments** | [`experiments/`](./experiments/) — the runnable evidence behind v0.4's federation rules; numbers in [`RESULTS.md`](./experiments/RESULTS.md) |
-| **Curation policy** (non-normative) | [`CURATOR.md`](./CURATOR.md) — six rules and four numbers to paste into an agent's instructions |
+| **Curation policy** (non-normative) | [`CURATOR.md`](./CURATOR.md) — seven rules and four numbers to paste into an agent's instructions |
 | **Worked example** | [`examples/`](./examples/) — passes the validator at Level 3 |
 | **Validator** | [`tools/ai-xf-validate.py`](./tools/ai-xf-validate.py) — conformance ladder, `--stats`, `--federation` |
 
@@ -125,7 +125,7 @@ generated:
   by: curator/1.0
   at: 2026-09-21T08:00:00Z
 status: draft
-stale_after: 2026-12-21
+stale_after: 2026-12-21T00:00:00Z
 sources:
   - id: sept-load-test
     resource: https://internal.example.com/tests/2026-09-18-capture-load
@@ -137,7 +137,7 @@ links:
     to: sync-capture-limits-throughput
     state: open
     by: curator/1.0
-    at: 2026-09-21
+    at: 2026-09-21T00:00:00Z
     note: New load test disagrees with the Q2 attribution. Both claims kept.
 ---
 # Claim
@@ -199,6 +199,9 @@ be a superset of OKF; AI-XF is that superset written down.
 - **v0.4** (draft, 2026-09-26): federation with evidence. Explicit link form,
   resolution rule, consumer manifest, `imported`, OCI distribution; every rule
   tested in `experiments/` before it was written down.
+- **v0.4.3** (2026-10-02): freshness. Timestamps are datetimes with an offset,
+  as OKF now requires; a concept that leaves a bundle becomes a tombstone; the
+  validator reports what a bundle has stopped reconciling (E8).
 
 ## Naming
 

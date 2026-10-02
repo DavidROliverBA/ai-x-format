@@ -11,9 +11,9 @@ generated:
   at: 2026-04-10T09:00:00Z
 verified:
   - by: process:schema-checker
-    at: 2026-09-01
+    at: 2026-09-01T00:00:00Z
 status: stable
-stale_after: 2027-04-10
+stale_after: 2027-04-10T00:00:00Z
 
 provenance:
   confidence: high

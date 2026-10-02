@@ -9,7 +9,7 @@ the bundle — what Andrej Karpathy's
 [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 pattern calls the *schema* layer, and deliberately leaves to the reader.
 
-This file is one such schema: six rules and four numbers. Paste it into your
+This file is one such schema: seven rules and four numbers. Paste it into your
 agent's instruction file (`CLAUDE.md`, `AGENTS.md` or equivalent) and edit it to
 fit. It assumes an AI-XF v0.3 bundle, and each rule names the field that makes it
 checkable.
@@ -21,7 +21,7 @@ been filled in. The field existed. The discipline did not.
 
 ---
 
-## The six rules
+## The seven rules
 
 ### 1. Search before you write, and search by meaning
 
@@ -110,6 +110,26 @@ can be computed.
 Also log what you could **not** answer. When a question finds nothing in the
 bundle, add a `Gap` entry. That list is next week's reading list.
 
+### 7. Retire, don't delete; rename, don't re-mint
+
+When a concept stops being true or leaves the bundle, set `status: deprecated`,
+point it at its successor if it has one (`superseded-by`, `merged-into`), and
+log a `Deprecation`. Do not delete the file. A deleted concept looks exactly
+like one nobody wrote, and every link into it now says nothing; a retired one
+tells the reader what happened (SPEC §6.6). Retirement is gated like deletion
+(rule 5), because it changes what agents are told.
+
+A rename keeps the `id`. Change the title, the filename and the folder as you
+like; the `id` is what everyone else links to (SPEC §5.2). If a tool has already
+minted a new `id`, retire the old one with `superseded-by` the new one and add
+the old `id` to the new concept's `aliases`.
+
+If the bundle is generated from somewhere else (an exporter, a sync job), the
+generator must do this for you on every run. Test it: delete one source, re-run,
+and check that the number of live concepts falls and a `Deprecation`
+appears. A generator that passes additions and edits but not this test is
+accumulating, not reconciling.
+
 ---
 
 ## The four numbers
@@ -127,7 +147,12 @@ python3 tools/ai-xf-validate.py path/to/bundle --stats
 | Share of concepts past **`stale_after`** | Flat or falling | Climbing month on month |
 | Share of questions answered **from the bundle alone** | Rising; `Gap` entries get closed | You keep going back to raw sources |
 
-A fifth check is free: the spread of `provenance.confidence`. If nearly every
+Two more checks are free. `--stats` also reports **freshness**: concept files no
+`index.md` lists (left behind by a generator), live links into retired concepts
+(re-point them), concepts something replaced but nobody retired, and sources
+that changed after the concept was last verified. Each should be zero.
+
+The other is the spread of `provenance.confidence`. If nearly every
 concept says `high`, the label has stopped carrying information (SPEC §7.2).
 Reset it, and rank on derived signals — trust tier, staleness, `supports` and
 open `contradicts` — instead.

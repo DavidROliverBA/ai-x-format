@@ -9,7 +9,7 @@ generated:
   by: human:household-admin
   at: 2026-01-10T18:00:00Z
 status: stable
-stale_after: 2026-07-10
+stale_after: 2026-07-10T00:00:00Z
 
 provenance:
   confidence: medium

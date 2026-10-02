@@ -11,9 +11,9 @@ generated:
   at: 2026-06-01T10:00:00Z
 verified:
   - by: human:sam-patel
-    at: 2026-06-01
+    at: 2026-06-01T11:00:00Z
 status: stable
-stale_after: 2027-06-01
+stale_after: 2027-06-01T00:00:00Z
 sources:
   - id: orders-events-design
     resource: https://internal.example.com/data-eng/designs/orders-events
