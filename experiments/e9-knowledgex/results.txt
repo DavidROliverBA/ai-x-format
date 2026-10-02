@@ -1,0 +1,37 @@
+# E9 run, 2026-10-02T21:51:42Z, knowledgex@0.4.0, workdir /var/folders/tm/548b9kgd0bng2g0bw4233bx40000gn/T/e9.6Fqm8hgR9i
+
+## A. KnowledgeX notebook validated as AI-XF
+kx check: nb: 0 error(s), 4 warning(s)
+AI-XF level 0: PASS at level 0 (0 error(s), 0 warning(s))
+AI-XF level 1: FAIL at level 1 (5 error(s), 0 warning(s))
+AI-XF level 2: FAIL at level 2 (5 error(s), 0 warning(s))
+AI-XF level 3: FAIL at level 3 (7 error(s), 0 warning(s))
+AI-XF stats: contradictions:    0 open, 0 resolved
+AI-XF stats: change edges:      none
+AI-XF stats: retired (no successor): use-redis-as-the-job-queue.md
+KnowledgeX relationship keys written:
+  contradicts:
+    - use-postgresql-as-the-job-queue.md
+  --
+  supersedes:
+    - use-redis-as-the-job-queue.md
+
+## B. AI-XF examples/ read by KnowledgeX
+nested, as published: nested: 0 error(s), 1 warning(s); search finds 0 notes
+flattened, f4031dc (date-only timestamps), KnowledgeX trust tiers:
+     1 · machine-confirmed 
+     6 · unverified 
+flattened, v0.4.3 (datetimes, events in order), KnowledgeX trust tiers:
+     5 · human-reviewed 
+     2 · unverified 
+AI-XF's own reading of the same concepts: unverified 2, human-reviewed 5
+kx review (v0.4.3):
+  ## Deprecated without a successor
+  - [ ] payment-service.md (Payment Service)
+  - [ ] payments-api.md (Payments API)
+  ## Drafts
+  - [ ] orders-db-is-not-the-bottleneck.md (The orders database is not the payment bottleneck)
+  - [ ] payment-service-v2.md (Payment Service v2)
+  ## Never verified
+  - [ ] orders-db-is-not-the-bottleneck.md (The orders database is not the payment bottleneck)
+  - [ ] payment-service-v2.md (Payment Service v2)
