@@ -212,6 +212,7 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 - **The trust loss is about ordering, isolated by two controls:** a bare-date verification reads as midnight, before the same day's timed `generated.at`, so the content looks edited since it was checked (OKF §5.2). The first mechanical conversion to `T00:00:00Z` reproduced it in 8 fixture files; fixed, and SPEC §5.6 now says to keep events in order. `--stats` gained `changed_since_verified`.
 - **Relationship dialects do not interoperate** in either direction; each tool reports the other's retirements as having no successor. A matter for OKF #16/#22.
 - **Convergent design:** trust does not travel with copies (cf. §7.3a), `aliases`, the log words, retired notes hidden at search time, renames by content fingerprint (now in `ai-xf-export`).
+- **Raised upstream:** KnowledgeX#22 (nested bundles); OKF #16 (dialects), #24 (bare dates and ordering), #11 (E8 tombstones). Reading the KnowledgeX dialect is deferred until OKF picks a relationship carrier.
 
 ---
 

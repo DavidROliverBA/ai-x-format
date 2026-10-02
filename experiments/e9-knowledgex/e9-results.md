@@ -76,12 +76,16 @@ when converting, and `--stats` reports `changed_since_verified`.
    It hides retired notes at search time, and detects renames by content
    fingerprint, which `ai-xf-export` now also does.
 
-## Candidates (not adopted)
+## Raised upstream (2026-10-02)
 
-- **Read the KnowledgeX relationship dialect** (`supersedes`/`contradicts`
-  lists of file names) as typed links in the validator's `--stats`, as a
-  consumer tolerance. Small; but it is a third dialect for the same thing, and
-  OKF #16/#22 may settle it first.
-- **Raise the dialect on OKF #16/#22** with these numbers.
-- **Report it upstream to KnowledgeX**: nested bundles are invisible to it.
-- **Flat or nested layout:** a note in `CURATOR.md`, or nothing; OKF allows both.
+- Nested bundles invisible to KnowledgeX: [rahulnyk/KnowledgeX#22](https://github.com/rahulnyk/KnowledgeX/issues/22).
+- Relationship dialects: [OKF #16](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/16#issuecomment-5962279243).
+- Bare dates and event ordering: [OKF #24](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/24#issuecomment-5962278990).
+- E8's tombstone evidence: [OKF #11](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/11#issuecomment-5962276648).
+
+## Not adopted
+
+- **Reading the KnowledgeX relationship dialect** in the validator. It would be
+  a third spelling of the same edges; wait for OKF #16/#22 to choose a carrier,
+  then adopt that one (AI-XF retires its own form when OKF adopts a feature).
+- **Flat or nested layout:** OKF allows both; nothing to change here.
