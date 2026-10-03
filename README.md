@@ -11,11 +11,11 @@ AI-XF-aware agents read the same files and see more.
 
 | | |
 |---|---|
-| **Spec** | [`SPEC.md`](./SPEC.md) — v0.4, draft |
-| **Experiments** | [`experiments/`](./experiments/) — the runnable evidence behind v0.4's federation rules; numbers in [`RESULTS.md`](./experiments/RESULTS.md) |
+| **Spec** | [`SPEC.md`](./SPEC.md) — v0.4.4, draft |
+| **Experiments** | [`experiments/`](./experiments/) — runnable evidence: federation (E1–E7), freshness and interoperability (E8–E9), maturity journeys into a database, from a wiki and into another system (E10–E12); numbers in [`RESULTS.md`](./experiments/RESULTS.md) |
 | **Curation policy** (non-normative) | [`CURATOR.md`](./CURATOR.md) — seven rules and four numbers to paste into an agent's instructions |
 | **Worked example** | [`examples/`](./examples/) — passes the validator at Level 3 |
-| **Validator** | [`tools/ai-xf-validate.py`](./tools/ai-xf-validate.py) — conformance ladder, `--stats`, `--federation` |
+| **Validator** | [`tools/ai-xf-validate.py`](./tools/ai-xf-validate.py) — conformance ladder, `--stats` (curation health and freshness), `--federation`; no dependencies |
 
 ---
 
@@ -27,8 +27,9 @@ an agent knows whether *B replaces A* or *B depends on A*. Carry OKF's trust
 fields unchanged so a human-reviewed concept means the same thing in every
 bundle. Give binary assets a content hash so a diagram keeps its identity when
 it moves. Let bundles from different teams cite each other by `namespace/id`.
-And, new in v0.3, record what happens when new knowledge meets old: an open
-contradiction, a merge, a claim gaining support. Everything stays "just files".
+Record what happens when new knowledge meets old: an open contradiction, a
+merge, a claim gaining support. And when a concept leaves, keep it as a
+tombstone that says so, rather than deleting it. Everything stays "just files".
 
 ---
 
@@ -46,6 +47,8 @@ contradiction, a merge, a claim gaining support. Everything stays "just files".
 | Disagreement | — | **contradiction lifecycle**: `open` / `resolved`, who ruled, and the outcome |
 | Evidence | — | `supports` edges; `type: Claim` recommended for falsifiable statements |
 | Merge and split | — | tombstones, `merged-into` / `split-from`, successor redirects |
+| Retirement | file deleted; a removed concept looks unwritten | a concept that leaves a bundle **becomes a tombstone**; producers that regenerate a bundle retire on every run |
+| Timestamps | datetime with an offset (since OKF PR #6) | the same rule, applied to AI-XF's own edge timestamps; bare dates still read, with a warning |
 | Curation activity | prose `log.md` | controlled leading-word vocabulary, so a bundle can report its own Update : Creation ratio |
 | Binary assets | opaque URIs | **content-hash identity** and embedding pointers (`media`) |
 | Multiple teams | one bundle at a time | **federation**: namespaces, `namespace/id` and `ai-xf://namespace/id` links, shared vocabularies, a consumer manifest with per-bundle provenance (`ref` or OCI `digest`), a resolution rule that never crosses a bundle boundary silently, and `imported` copies that do not inherit trust |
@@ -78,11 +81,28 @@ a signed OCI artifact catches tampering and its digest belongs in the
 federation manifest, never in the bundle's own (E6); and a tools-only MCP
 server can carry `namespace/id` end to end (E4).
 
+**v0.4.3 adds freshness, also with evidence.** Deleting a source is the test
+most knowledge pipelines fail: a real exporter kept removed concepts live, and
+the warning that called their broken links "not yet written" was wrong 11 times
+in 12 (E8). So a departing concept becomes a tombstone, and `--stats` reports
+what a bundle has stopped reconciling. Tested against a third-party OKF tool,
+KnowledgeX, bare-date timestamps cost every human review in `examples/`, 0 of 5
+read as reviewed, until they became datetimes with events in order (E9).
+
+**Where a bundle goes next.** Three experiments follow a growing knowledge
+base: in from Confluence or SharePoint Word files, where a naive conversion
+kept at most a third of what mattered and leaked a restricted page (E11); up
+into Postgres for a department, where concurrent writers, not size, force the
+move, and the bundle becomes an export (E10); and across into another system's
+database (E12). Each one is a list of what the format still needs, in
+[`RESULTS.md`](./experiments/RESULTS.md).
+
 The format still cannot make a curator behave. That is policy, and it ships
 separately as [`CURATOR.md`](./CURATOR.md): search by meaning before writing,
 keep evidence apart from synthesis, store claims rather than topics, treat a
-contradiction as a ticket for a person, gate changes by reversibility, and log
-one entry per move. Nothing in it is required for conformance.
+contradiction as a ticket for a person, gate changes by reversibility, log
+one entry per move, and retire rather than delete. Nothing in it is required
+for conformance.
 
 ---
 
@@ -177,7 +197,10 @@ python3 tools/ai-xf-validate.py path/to/bundle --level 3 --federation federation
 `--stats` never affects pass/fail. It reports trust tiers, staleness, open and
 resolved contradictions, per-claim citation coverage, the spread of asserted
 confidence (and flags a lopsided one), and the Update : Creation ratio from
-`log.md`. The validator warns on the three spellings AI-XF v0.2 got wrong
+`log.md`. Its freshness section lists concept files no `index.md` lists, live
+links into retired concepts, concepts replaced but not retired, and concepts
+changed (or whose sources changed) since they were last verified. With
+`--federation` it also reports vocabulary nobody uses, by relationship pair. The validator warns on the three spellings AI-XF v0.2 got wrong
 (`status: active`, `sources[].uri`, `agent:` / `pipeline:` actors) and still
 reads them.
 
@@ -201,7 +224,9 @@ be a superset of OKF; AI-XF is that superset written down.
   tested in `experiments/` before it was written down.
 - **v0.4.3** (2026-10-02): freshness. Timestamps are datetimes with an offset,
   as OKF now requires; a concept that leaves a bundle becomes a tombstone; the
-  validator reports what a bundle has stopped reconciling (E8).
+  validator reports what a bundle has stopped reconciling (E8, E9).
+- **v0.4.4** (2026-10-03): the validator honours custom rels a bundle declares
+  in its own vocabulary, found by a second producer (E12).
 
 ## Naming
 
@@ -215,16 +240,22 @@ and v0.4.1), and the validator still reads those spellings.
 ## Status
 
 AI-XF v0.4 is a draft designed for backward-compatible growth. Every v0.3 bundle
-is a valid v0.4 bundle, and every v0.2 bundle a valid v0.3 one; v0.1 bundles remain valid input, with their deprecated
-fields (`timestamp`, `provenance.verified` / `.freshness` / `.reviewed`) read
-but no longer written. See the changelog in [`SPEC.md`](./SPEC.md) §13.
+is a valid v0.4 bundle, and every v0.2 bundle a valid v0.3 one; v0.1 bundles
+remain valid input, with their deprecated fields (`timestamp`,
+`provenance.verified` / `.freshness` / `.reviewed`) read but no longer written.
+Bare-date timestamps are read the same way, with a warning. See the changelog
+in [`SPEC.md`](./SPEC.md) §13.
 
 AI-XF exists to try things ahead of the OKF specification, not to compete with
 it. Every feature that OKF adopts is retired from AI-XF in favour of OKF's
 definition, as happened with the trust and lifecycle fields when OKF v0.2
-shipped. If OKF wins as the standard, AI-XF has done its job.
+shipped. If OKF wins as the standard, AI-XF has done its job. Evidence goes
+back to the OKF issue tracker as it is found: on deletion semantics (#11),
+typed relationships (#16, #22) and timestamps (#24).
 
-It has one producer and one consumer today, which makes it a published
-hypothesis rather than a standard. Feedback, alternative implementations and
+Two of its producers are the author's own (a notes-vault exporter, and
+Longview, a news-intelligence service that exports and imports bundles), and
+it has been tested against one independent OKF tool, KnowledgeX (E9). That
+still makes it a published hypothesis rather than a standard. Feedback, alternative implementations and
 conformance cases are welcome; see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 MIT licensed.
