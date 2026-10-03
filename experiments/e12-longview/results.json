@@ -1,0 +1,229 @@
+{
+  "import_examples": {
+    "concepts": {
+      "read": 7,
+      "inserted": 7,
+      "updated": 0,
+      "unchanged": 0,
+      "skipped": {},
+      "notInBundle": 0
+    },
+    "projected": {
+      "rawInserted": 5,
+      "rawUnchanged": 0,
+      "changedItemNotRefreshed": 0,
+      "skipped": {
+        "status deprecated (stored only)": 2
+      }
+    },
+    "entities": {
+      "matched": 0,
+      "created": 1,
+      "aliasesAdded": 1,
+      "aliasConflicts": 0,
+      "kindMismatch": 0
+    },
+    "links": {
+      "total": 14,
+      "unprojectedByRel": {
+        "author-of": 2,
+        "authored-by": 2,
+        "contradicts": 1,
+        "depends-on": 3,
+        "describes": 1,
+        "merged-into": 1,
+        "referenced-by": 1,
+        "superseded-by": 1,
+        "supersedes": 1,
+        "supports": 1
+      },
+      "unprojectedByReason": {
+        "rel has no Longview edge": 2,
+        "source concept deprecated": 4,
+        "source concept is not a projected entity": 8
+      }
+    },
+    "trust": {
+      "human": 5,
+      "machine": 0,
+      "unverified": 2
+    },
+    "keysNotModelled": {
+      "media": 1,
+      "provenance": 6,
+      "resource": 3,
+      "sources": 4,
+      "stale_after": 5,
+      "tags": 7,
+      "verified": 5
+    }
+  },
+  "import_psychology": {
+    "concepts": {
+      "read": 102,
+      "inserted": 102,
+      "updated": 0,
+      "unchanged": 0,
+      "skipped": {},
+      "notInBundle": 0
+    },
+    "projected": {
+      "rawInserted": 102,
+      "rawUnchanged": 0,
+      "changedItemNotRefreshed": 0,
+      "skipped": {}
+    },
+    "entities": {
+      "matched": 0,
+      "created": 0,
+      "aliasesAdded": 0,
+      "aliasConflicts": 0,
+      "kindMismatch": 0
+    },
+    "links": {
+      "total": 417,
+      "unprojectedByRel": {
+        "contradicts": 6,
+        "relates-to": 411
+      },
+      "unprojectedByReason": {
+        "source concept is not a projected entity": 417
+      }
+    },
+    "trust": {
+      "human": 43,
+      "machine": 0,
+      "unverified": 59
+    },
+    "keysNotModelled": {
+      "conceptType": 102,
+      "provenance": 102,
+      "stale_after": 102,
+      "tags": 102,
+      "verified": 43
+    }
+  },
+  "reimport_after_edit_retire_add": {
+    "concepts": {
+      "read": 103,
+      "inserted": 1,
+      "updated": 2,
+      "unchanged": 100,
+      "skipped": {},
+      "notInBundle": 0
+    },
+    "projected": {
+      "rawInserted": 2,
+      "rawUnchanged": 100,
+      "changedItemNotRefreshed": 0,
+      "skipped": {
+        "status deprecated (stored only)": 1
+      }
+    },
+    "entities": {
+      "matched": 0,
+      "created": 0,
+      "aliasesAdded": 0,
+      "aliasConflicts": 0,
+      "kindMismatch": 0
+    },
+    "links": {
+      "total": 417,
+      "unprojectedByRel": {
+        "contradicts": 6,
+        "relates-to": 411
+      },
+      "unprojectedByReason": {
+        "source concept deprecated": 6,
+        "source concept is not a projected entity": 411
+      }
+    },
+    "trust": {
+      "human": 43,
+      "machine": 0,
+      "unverified": 60
+    },
+    "keysNotModelled": {
+      "conceptType": 102,
+      "provenance": 102,
+      "stale_after": 102,
+      "tags": 102,
+      "verified": 43
+    }
+  },
+  "reimport_after_delete": {
+    "concepts": {
+      "read": 102,
+      "inserted": 0,
+      "updated": 0,
+      "unchanged": 102,
+      "skipped": {},
+      "notInBundle": 1
+    },
+    "projected": {
+      "rawInserted": 0,
+      "rawUnchanged": 101,
+      "changedItemNotRefreshed": 0,
+      "skipped": {
+        "status deprecated (stored only)": 1
+      }
+    },
+    "entities": {
+      "matched": 0,
+      "created": 0,
+      "aliasesAdded": 0,
+      "aliasConflicts": 0,
+      "kindMismatch": 0
+    },
+    "links": {
+      "total": 417,
+      "unprojectedByRel": {
+        "contradicts": 6,
+        "relates-to": 411
+      },
+      "unprojectedByReason": {
+        "source concept deprecated": 6,
+        "source concept is not a projected entity": 411
+      }
+    },
+    "trust": {
+      "human": 43,
+      "machine": 0,
+      "unverified": 59
+    },
+    "keysNotModelled": {
+      "conceptType": 102,
+      "provenance": 102,
+      "stale_after": 102,
+      "tags": 102,
+      "verified": 43
+    }
+  },
+  "lifecycle": {
+    "raw_rows_action_bias": 2,
+    "retired_raw_status": "stable",
+    "retired_stored_status": "deprecated",
+    "deleted_still_stored": 1,
+    "deleted_still_raw": 1,
+    "stale_after_kept_verbatim": "2027-03-23T00:00:00Z",
+    "conceptType_kept": "bias"
+  },
+  "export": [
+    "read: 1 entities, 1 events, 1 claims, 0 verdicts, 0 edges, 0 briefs, 0 superseded, 66 sources",
+    "concepts: source 66, entity 1, event 1, claim 1, brief 0, brief-tombstone 0; 69 in the bundle; generated 2026-10-03T07:27:37.903Z"
+  ],
+  "export_event_cites": [
+    "ai-xf://psychology/action-bias"
+  ],
+  "validate_vendored_4ff386f": {
+    "passed": true,
+    "findings": 0
+  },
+  "validate_v0_4_3": {
+    "passed": true,
+    "findings": 5,
+    "kinds": {
+      "X is not an ISO 8601 datetime with an offset (SPEC \u00a75.6) \u2014 write e.g. X; read as 00:00 UTC": 5
+    }
+  }
+}

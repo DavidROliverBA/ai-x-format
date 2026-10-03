@@ -1,0 +1,634 @@
+{
+  "bundles": {
+    "naive-word": {
+      "probes": {
+        "kept": 35,
+        "lost": 66,
+        "degraded": 16
+      },
+      "validator": {
+        "achieved_level": 0,
+        "errors": 13,
+        "warnings": 0,
+        "error_kinds": {
+          "missing manifest.ai-xf.yaml (required at Level 1)": 1,
+          "missing `\u2026` (required at Level 1)": 5,
+          "no trust signals: needs a `\u2026` map or an OKF v0.2 trust field (required": 5,
+          "missing `\u2026` (required at Level 3)": 1,
+          "missing `\u2026` with `\u2026` and `\u2026` (required at Level 3; a federation-level ": 1
+        },
+        "warning_kinds": {},
+        "trust_tiers": {
+          "unverified": 5
+        },
+        "status": {
+          "stable": 5
+        },
+        "past_stale_after": 0,
+        "freshness": {
+          "unindexed": null,
+          "edges_into_retired": 0,
+          "edges_into_redirects": 0,
+          "superseded_not_deprecated": [],
+          "sources_changed_since_verified": [],
+          "changed_since_verified": []
+        },
+        "log": {}
+      }
+    },
+    "mapped-word": {
+      "probes": {
+        "kept": 117
+      },
+      "validator": {
+        "achieved_level": 3,
+        "errors": 0,
+        "warnings": 0,
+        "error_kinds": {},
+        "warning_kinds": {},
+        "trust_tiers": {
+          "human-reviewed": 3,
+          "unverified": 5
+        },
+        "status": {
+          "stable": 6,
+          "draft": 2
+        },
+        "past_stale_after": 1,
+        "freshness": {
+          "unindexed": [],
+          "edges_into_retired": 0,
+          "edges_into_redirects": 0,
+          "superseded_not_deprecated": [],
+          "sources_changed_since_verified": [
+            "doc-nwp-1004"
+          ],
+          "changed_since_verified": [
+            "doc-nwp-1004"
+          ]
+        },
+        "log": {
+          "Initialization": 1,
+          "Creation": 5,
+          "Update": 10,
+          "Gap": 4
+        }
+      }
+    },
+    "naive-confluence": {
+      "probes": {
+        "kept": 22,
+        "leaked": 3,
+        "degraded": 12,
+        "lost": 57
+      },
+      "validator": {
+        "achieved_level": 0,
+        "errors": 13,
+        "warnings": 0,
+        "error_kinds": {
+          "missing manifest.ai-xf.yaml (required at Level 1)": 1,
+          "missing `\u2026` (required at Level 1)": 5,
+          "no trust signals: needs a `\u2026` map or an OKF v0.2 trust field (required": 5,
+          "missing `\u2026` (required at Level 3)": 1,
+          "missing `\u2026` with `\u2026` and `\u2026` (required at Level 3; a federation-level ": 1
+        },
+        "warning_kinds": {},
+        "trust_tiers": {
+          "unverified": 5
+        },
+        "status": {
+          "stable": 5
+        },
+        "past_stale_after": 0,
+        "freshness": {
+          "unindexed": null,
+          "edges_into_retired": 0,
+          "edges_into_redirects": 0,
+          "superseded_not_deprecated": [],
+          "sources_changed_since_verified": [],
+          "changed_since_verified": []
+        },
+        "log": {}
+      }
+    },
+    "mapped-confluence": {
+      "probes": {
+        "kept": 78,
+        "withheld": 16
+      },
+      "validator": {
+        "achieved_level": 3,
+        "errors": 0,
+        "warnings": 2,
+        "error_kinds": {},
+        "warning_kinds": {
+          "media[0] has no `\u2026` \u2014 asset identity degrades to its URI": 2
+        },
+        "trust_tiers": {
+          "unverified": 4,
+          "human-reviewed": 2
+        },
+        "status": {
+          "stable": 5,
+          "draft": 1
+        },
+        "past_stale_after": 1,
+        "freshness": {
+          "unindexed": [],
+          "edges_into_retired": 0,
+          "edges_into_redirects": 0,
+          "superseded_not_deprecated": [],
+          "sources_changed_since_verified": [],
+          "changed_since_verified": []
+        },
+        "log": {
+          "Initialization": 1,
+          "Creation": 4,
+          "Update": 5
+        }
+      },
+      "withholding": {
+        "withheld_pages": 1,
+        "withheld_links": 2
+      }
+    }
+  },
+  "by_kind": {
+    "naive-word": {
+      "comment": {
+        "lost": 4
+      },
+      "heading": {
+        "degraded": 5,
+        "kept": 8
+      },
+      "image": {
+        "degraded": 1
+      },
+      "link-external": {
+        "kept": 2
+      },
+      "link-internal": {
+        "degraded": 6
+      },
+      "list-item": {
+        "kept": 9
+      },
+      "metadata:approval": {
+        "lost": 5
+      },
+      "metadata:author": {
+        "lost": 5
+      },
+      "metadata:content-type": {
+        "kept": 4,
+        "lost": 1
+      },
+      "metadata:created": {
+        "lost": 5
+      },
+      "metadata:document-id": {
+        "lost": 5
+      },
+      "metadata:keywords": {
+        "lost": 5
+      },
+      "metadata:last-modified-by": {
+        "lost": 5
+      },
+      "metadata:managed-metadata": {
+        "lost": 10
+      },
+      "metadata:modified": {
+        "lost": 5
+      },
+      "metadata:subject": {
+        "lost": 1,
+        "kept": 4
+      },
+      "metadata:title": {
+        "kept": 5
+      },
+      "table": {
+        "kept": 3
+      },
+      "tracked-delete": {
+        "degraded": 2
+      },
+      "tracked-insert": {
+        "degraded": 2
+      },
+      "version": {
+        "lost": 15
+      }
+    },
+    "mapped-word": {
+      "comment": {
+        "kept": 4
+      },
+      "heading": {
+        "kept": 13
+      },
+      "image": {
+        "kept": 1
+      },
+      "link-external": {
+        "kept": 2
+      },
+      "link-internal": {
+        "kept": 6
+      },
+      "list-item": {
+        "kept": 9
+      },
+      "metadata:approval": {
+        "kept": 5
+      },
+      "metadata:author": {
+        "kept": 5
+      },
+      "metadata:content-type": {
+        "kept": 5
+      },
+      "metadata:created": {
+        "kept": 5
+      },
+      "metadata:document-id": {
+        "kept": 5
+      },
+      "metadata:keywords": {
+        "kept": 5
+      },
+      "metadata:last-modified-by": {
+        "kept": 5
+      },
+      "metadata:managed-metadata": {
+        "kept": 10
+      },
+      "metadata:modified": {
+        "kept": 5
+      },
+      "metadata:subject": {
+        "kept": 5
+      },
+      "metadata:title": {
+        "kept": 5
+      },
+      "table": {
+        "kept": 3
+      },
+      "tracked-delete": {
+        "kept": 2
+      },
+      "tracked-insert": {
+        "kept": 2
+      },
+      "version": {
+        "kept": 15
+      }
+    },
+    "naive-confluence": {
+      "attachment": {
+        "lost": 2
+      },
+      "heading": {
+        "kept": 4,
+        "leaked": 1
+      },
+      "link-internal": {
+        "degraded": 6
+      },
+      "list-item": {
+        "kept": 1
+      },
+      "macro-code": {
+        "degraded": 2
+      },
+      "macro-details": {
+        "kept": 2
+      },
+      "macro-expand": {
+        "kept": 1
+      },
+      "macro-info": {
+        "degraded": 1
+      },
+      "macro-jira": {
+        "degraded": 2
+      },
+      "macro-note": {
+        "leaked": 1
+      },
+      "macro-toc": {
+        "kept": 1
+      },
+      "macro-warning": {
+        "degraded": 1
+      },
+      "mention": {
+        "lost": 2
+      },
+      "metadata:ancestor": {
+        "lost": 4
+      },
+      "metadata:content-status": {
+        "lost": 3
+      },
+      "metadata:created-by": {
+        "lost": 5
+      },
+      "metadata:label": {
+        "lost": 10
+      },
+      "metadata:last-modified": {
+        "lost": 5
+      },
+      "metadata:last-modified-by": {
+        "lost": 5
+      },
+      "metadata:page-id": {
+        "lost": 5
+      },
+      "metadata:restriction": {
+        "lost": 1
+      },
+      "metadata:space": {
+        "lost": 3,
+        "kept": 2
+      },
+      "metadata:title": {
+        "kept": 4,
+        "leaked": 1
+      },
+      "metadata:version-number": {
+        "lost": 2,
+        "kept": 3
+      },
+      "table": {
+        "kept": 2
+      },
+      "text": {
+        "kept": 2
+      },
+      "version": {
+        "lost": 10
+      }
+    },
+    "mapped-confluence": {
+      "attachment": {
+        "kept": 2
+      },
+      "heading": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "link-internal": {
+        "kept": 4,
+        "withheld": 2
+      },
+      "list-item": {
+        "kept": 1
+      },
+      "macro-code": {
+        "kept": 2
+      },
+      "macro-details": {
+        "kept": 2
+      },
+      "macro-expand": {
+        "kept": 1
+      },
+      "macro-info": {
+        "kept": 1
+      },
+      "macro-jira": {
+        "kept": 2
+      },
+      "macro-note": {
+        "withheld": 1
+      },
+      "macro-toc": {
+        "kept": 1
+      },
+      "macro-warning": {
+        "kept": 1
+      },
+      "mention": {
+        "kept": 2
+      },
+      "metadata:ancestor": {
+        "kept": 3,
+        "withheld": 1
+      },
+      "metadata:content-status": {
+        "kept": 3
+      },
+      "metadata:created-by": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "metadata:label": {
+        "kept": 8,
+        "withheld": 2
+      },
+      "metadata:last-modified": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "metadata:last-modified-by": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "metadata:page-id": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "metadata:restriction": {
+        "withheld": 1
+      },
+      "metadata:space": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "metadata:title": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "metadata:version-number": {
+        "kept": 4,
+        "withheld": 1
+      },
+      "table": {
+        "kept": 2
+      },
+      "text": {
+        "kept": 2
+      },
+      "version": {
+        "kept": 9,
+        "withheld": 1
+      }
+    }
+  },
+  "losses": {
+    "naive-word": [
+      "lost: Payment Service Overview / metadata:author: Jane Doe",
+      "lost: Payment Service Overview / metadata:last-modified-by: Sam Patel",
+      "lost: Payment Service Overview / metadata:created: 2025-11-04T09:00:00Z",
+      "lost: Payment Service Overview / metadata:modified: 2026-07-18T09:12:00Z",
+      "lost: Payment Service Overview / metadata:subject: Payment service design",
+      "lost: Payment Service Overview / metadata:keywords: payments; capture; design",
+      "lost: Payment Service Overview / metadata:document-id: NWP-1001",
+      "lost: Payment Service Overview / metadata:approval: Approved",
+      "lost: Payment Service Overview / metadata:managed-metadata: Payments",
+      "lost: Payment Service Overview / metadata:managed-metadata: Architecture",
+      "degraded: Payment Service Overview / heading: Payment Service Overview",
+      "lost: Payment Service Overview / comment: Should we say which card schemes are in scope?",
+      "degraded: Payment Service Overview / tracked-insert: It moves to an event-driven design in v2.",
+      "degraded: Payment Service Overview / tracked-delete: Batch capture is planned for 2027.",
+      "degraded: Payment Service Overview / image: payment-flow",
+      "degraded: Payment Service Overview / link-internal: https://example.sharepoint.com/sites/PaymentsPlatform/Shared",
+      "lost: Payment Service Overview / version: Initial upload",
+      "lost: Payment Service Overview / version: Revision 2",
+      "lost: Payment Service Overview / version: Revision 3",
+      "lost: Capture Runbook / metadata:author: Sam Patel",
+      "lost: Capture Runbook / metadata:last-modified-by: Sam Patel",
+      "lost: Capture Runbook / metadata:created: 2026-01-12T10:00:00Z",
+      "lost: Capture Runbook / metadata:modified: 2026-08-30T14:20:00Z",
+      "lost: Capture Runbook / metadata:keywords: capture; runbook; on-call",
+      "lost: Capture Runbook / metadata:document-id: NWP-1002",
+      "lost: Capture Runbook / metadata:approval: Approved",
+      "lost: Capture Runbook / metadata:managed-metadata: Payments",
+      "lost: Capture Runbook / metadata:managed-metadata: Operations",
+      "degraded: Capture Runbook / heading: Capture Runbook",
+      "lost: Capture Runbook / comment: Fifteen minutes is too long for peak trading.",
+      "degraded: Capture Runbook / link-internal: https://example.sharepoint.com/sites/PaymentsPlatform/Shared",
+      "lost: Capture Runbook / version: Initial upload",
+      "lost: Capture Runbook / version: Revision 2",
+      "lost: Capture Runbook / version: Revision 3",
+      "lost: Refund Policy / metadata:author: Alex Kim",
+      "lost: Refund Policy / metadata:last-modified-by: Alex Kim",
+      "lost: Refund Policy / metadata:created: 2026-05-02T13:00:00Z",
+      "lost: Refund Policy / metadata:modified: 2026-09-20T16:45:00Z",
+      "lost: Refund Policy / metadata:keywords: refunds; policy",
+      "lost: Refund Policy / metadata:document-id: NWP-1003",
+      "lost: Refund Policy / metadata:approval: Pending",
+      "lost: Refund Policy / metadata:managed-metadata: Payments",
+      "lost: Refund Policy / metadata:managed-metadata: Finance",
+      "degraded: Refund Policy / heading: Refund Policy",
+      "degraded: Refund Policy / tracked-delete: Refunds older than one year are refused.",
+      "degraded: Refund Policy / tracked-insert: Refunds older than two years need a finance lead.",
+      "degraded: Refund Policy / link-internal: https://example.sharepoint.com/sites/PaymentsPlatform/Shared",
+      "lost: Refund Policy / version: Initial upload",
+      "lost: Refund Policy / version: Revision 2",
+      "lost: Refund Policy / version: Revision 3",
+      "lost: Orders Table Data Dictionary / metadata:author: Jane Doe",
+      "lost: Orders Table Data Dictionary / metadata:last-modified-by: Jane Doe",
+      "lost: Orders Table Data Dictionary / metadata:created: 2025-03-10T09:30:00Z",
+      "lost: Orders Table Data Dictionary / metadata:modified: 2025-08-14T10:00:00Z",
+      "lost: Orders Table Data Dictionary / metadata:keywords: orders; schema; data dictionary",
+      "lost: Orders Table Data Dictionary / metadata:document-id: NWP-1004",
+      "lost: Orders Table Data Dictionary / metadata:content-type: DataAsset",
+      "lost: Orders Table Data Dictionary / metadata:approval: Approved",
+      "lost: Orders Table Data Dictionary / metadata:managed-metadata: Data",
+      "lost: Orders Table Data Dictionary / metadata:managed-metadata: Orders",
+      "degraded: Orders Table Data Dictionary / heading: Orders Table Data Dictionary",
+      "degraded: Orders Table Data Dictionary / link-internal: https://example.sharepoint.com/sites/PaymentsPlatform/Shared",
+      "lost: Orders Table Data Dictionary / version: Initial upload",
+      "lost: Orders Table Data Dictionary / version: Revision 2",
+      "lost: Orders Table Data Dictionary / version: Revision 3",
+      "lost: Incident Review Capture Latency August / metadata:author: Alex Kim",
+      "lost: Incident Review Capture Latency August / metadata:last-modified-by: Jane Doe",
+      "lost: Incident Review Capture Latency August / metadata:created: 2026-08-22T08:00:00Z",
+      "lost: Incident Review Capture Latency August / metadata:modified: 2026-08-25T17:30:00Z",
+      "lost: Incident Review Capture Latency August / metadata:keywords: incident; latency; capture",
+      "lost: Incident Review Capture Latency August / metadata:document-id: NWP-1005",
+      "lost: Incident Review Capture Latency August / metadata:approval: Draft",
+      "lost: Incident Review Capture Latency August / metadata:managed-metadata: Operations",
+      "lost: Incident Review Capture Latency August / metadata:managed-metadata: Incidents",
+      "degraded: Incident Review Capture Latency August / heading: Incident Review: Capture Latency, August",
+      "lost: Incident Review Capture Latency August / comment: Was the acquirer at fault or our queue?",
+      "lost: Incident Review Capture Latency August / comment: Agreed, ten minutes.",
+      "degraded: Incident Review Capture Latency August / link-internal: https://example.sharepoint.com/sites/PaymentsPlatform/Shared",
+      "degraded: Incident Review Capture Latency August / link-internal: https://example.sharepoint.com/sites/PaymentsPlatform/Shared",
+      "lost: Incident Review Capture Latency August / version: Initial upload",
+      "lost: Incident Review Capture Latency August / version: Revision 2",
+      "lost: Incident Review Capture Latency August / version: Revision 3"
+    ],
+    "naive-confluence": [
+      "degraded: Payments Platform / macro-info: This space is the source of truth for payments design.",
+      "degraded: Payments Platform / link-internal: Payment Service",
+      "degraded: Payments Platform / link-internal: Capture Runbook",
+      "lost: Payments Platform / metadata:page-id: 163841",
+      "lost: Payments Platform / metadata:space: NWP",
+      "lost: Payments Platform / metadata:created-by: Jane Doe",
+      "lost: Payments Platform / metadata:last-modified-by: Sam Patel",
+      "lost: Payments Platform / metadata:last-modified: 2026-06-12T10:00:00Z",
+      "lost: Payments Platform / metadata:version-number: 2",
+      "lost: Payments Platform / metadata:label: payments",
+      "lost: Payments Platform / metadata:label: home",
+      "lost: Payments Platform / version: Created space home",
+      "lost: Payments Platform / version: Added platform principles",
+      "lost: Payment Service / mention: Jane Doe",
+      "degraded: Payment Service / macro-warning: Capture is synchronous until v2 ships.",
+      "degraded: Payment Service / macro-code: SELECT status FROM captures WHERE created_at > now() - inter",
+      "degraded: Payment Service / macro-jira: NWP-1234",
+      "lost: Payment Service / attachment: payment-flow.png",
+      "degraded: Payment Service / link-internal: Capture Runbook",
+      "lost: Payment Service / metadata:page-id: 163842",
+      "lost: Payment Service / metadata:created-by: Jane Doe",
+      "lost: Payment Service / metadata:last-modified-by: Jane Doe",
+      "lost: Payment Service / metadata:last-modified: 2026-07-18T09:12:00Z",
+      "lost: Payment Service / metadata:label: payments",
+      "lost: Payment Service / metadata:label: system",
+      "lost: Payment Service / metadata:ancestor: Payments Platform",
+      "lost: Payment Service / metadata:content-status: verified",
+      "lost: Payment Service / version: First draft",
+      "lost: Payment Service / version: Added capture flow",
+      "lost: Payment Service / version: Event-driven v2 note",
+      "degraded: Capture Runbook / macro-code: kubectl rollout undo deployment/capture-worker",
+      "lost: Capture Runbook / mention: Sam Patel",
+      "degraded: Capture Runbook / link-internal: Payment Service",
+      "degraded: Capture Runbook / link-internal: Refund Policy",
+      "lost: Capture Runbook / metadata:page-id: 163843",
+      "lost: Capture Runbook / metadata:space: NWP",
+      "lost: Capture Runbook / metadata:created-by: Sam Patel",
+      "lost: Capture Runbook / metadata:last-modified-by: Sam Patel",
+      "lost: Capture Runbook / metadata:last-modified: 2026-08-30T14:20:00Z",
+      "lost: Capture Runbook / metadata:label: runbook",
+      "lost: Capture Runbook / metadata:label: on-call",
+      "lost: Capture Runbook / metadata:ancestor: Payments Platform",
+      "lost: Capture Runbook / metadata:content-status: verified",
+      "lost: Capture Runbook / version: Initial runbook",
+      "lost: Capture Runbook / version: Added standby drain step",
+      "leaked: Refund Policy / heading: Limits",
+      "leaked: Refund Policy / macro-note: Refunds over 500 GBP need a finance lead.",
+      "leaked: Refund Policy / metadata:title: Refund Policy",
+      "lost: Refund Policy / metadata:page-id: 163844",
+      "lost: Refund Policy / metadata:space: NWP",
+      "lost: Refund Policy / metadata:created-by: Alex Kim",
+      "lost: Refund Policy / metadata:last-modified-by: Alex Kim",
+      "lost: Refund Policy / metadata:last-modified: 2026-05-02T13:00:00Z",
+      "lost: Refund Policy / metadata:version-number: 1",
+      "lost: Refund Policy / metadata:label: policy",
+      "lost: Refund Policy / metadata:label: finance",
+      "lost: Refund Policy / metadata:ancestor: Payments Platform",
+      "lost: Refund Policy / metadata:restriction: restricted",
+      "lost: Refund Policy / version: Policy draft",
+      "degraded: Orders Table / macro-jira: NWP-1290",
+      "lost: Orders Table / attachment: orders-sample.csv",
+      "degraded: Orders Table / link-internal: Refund Policy",
+      "lost: Orders Table / metadata:page-id: 163845",
+      "lost: Orders Table / metadata:created-by: Jane Doe",
+      "lost: Orders Table / metadata:last-modified-by: Jane Doe",
+      "lost: Orders Table / metadata:last-modified: 2025-08-14T10:00:00Z",
+      "lost: Orders Table / metadata:label: data-asset",
+      "lost: Orders Table / metadata:label: orders",
+      "lost: Orders Table / metadata:ancestor: Payment Service",
+      "lost: Orders Table / metadata:content-status: rough draft",
+      "lost: Orders Table / version: Data dictionary",
+      "lost: Orders Table / version: Added captured_amount"
+    ]
+  }
+}

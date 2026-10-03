@@ -214,6 +214,16 @@ The two misses (q09, q11) need a second hop that one search-then-get cannot make
 - **Convergent design:** trust does not travel with copies (cf. §7.3a), `aliases`, the log words, retired notes hidden at search time, renames by content fingerprint (now in `ai-xf-export`).
 - **Raised upstream:** KnowledgeX#22 (nested bundles); OKF #16 (dialects), #24 (bare dates and ordering), #11 (E8 tombstones). Reading the KnowledgeX dialect is deferred until OKF picks a relationship carrier.
 
+## E10–E12: maturity journeys (added after v0.4.3)
+
+**2026-10-03.** Exploratory, three experiments run in parallel on throwaway databases. Detail in each directory's results file.
+
+**E10, up (Postgres).** 172 real concepts load in 127 ms; the three `log.md` files replay as 177 typed events with no mapping (the log words are event types). Export from stored raw text: 181/181 files byte-identical; re-serialised from parsed `jsonb`: 172 changed (key order, flow lists, comments). 50 writers × 200 edits, skewed: last-write-wins lost **4,627 acknowledged edits (46.3%)**; optimistic revision checks lost 0 but needed 60,680 retries and 67 gave up (333/s); `SELECT … FOR UPDATE` lost 0 at 1,170/s. Git: concurrent tag or link additions conflict. CQRS read models rebuild in 110 ms (172) and 4.2 s (8,422 concepts); projection lag p50 483 ms. Blue/green vocabulary change: validator gate 114 type warnings until the vocabulary was expanded first; swap 4.5 ms, 4,790 reads, 0 errors. **Trap:** writers adding links to stored fields produced 3,221 mirroring errors on export, so a database must enforce the format on write. **AI-XF gaps:** canonical serialisation, a per-concept revision or content hash, machine-readable log lines.
+
+**E11, in (Confluence, SharePoint Word).** Synthetic corpus, 211 probes. Naive conversion (MarkItDown): Word 35/117 kept, Confluence 22/94 kept and **a read-restricted page leaked in full**; both level 0. Mapped converter: Word 117/117, Confluence 78 kept + 16 withheld; both level 3. Ids from the source system, titles as aliases. **AI-XF gap:** a withheld *link* marker (§7.5 covers sources only), the second experiment to need it. Caveat: the same agent wrote the converter and the probes.
+
+**E12, across (Longview).** Federate import of `examples/` and `psychology` into a throwaway Longview database: every concept stored verbatim with identity and trust tier; **0 of 431 typed links** reach Longview's working tables; retirements and deletions in the bundle do not propagate to its projection (accumulation, as in E8). Longview's export passes its vendored validator and warns 5 times under v0.4.3 (date-only timestamps), which its gate treats as failure. **AI-XF gaps:** the validator still warns on custom rels a bundle declares in its own `vocabularies.rels`; `examples/manifest.ai-xf.yaml` still says `ai-xf: "0.3"` and `producer: hand-authored` (not an actor).
+
 ---
 
 ## Summary and the v0.4 gate

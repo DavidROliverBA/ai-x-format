@@ -1,0 +1,338 @@
+{
+  "ran_at": "2026-10-03T07:29:31.661Z",
+  "bun": "1.3.13",
+  "storage": {
+    "loaded": {
+      "example-payments": {
+        "concepts": 7,
+        "historic_log_events": 12
+      },
+      "psychology": {
+        "concepts": 102,
+        "historic_log_events": 102
+      },
+      "ai-concepts": {
+        "concepts": 63,
+        "historic_log_events": 63
+      }
+    },
+    "load_ms": 126.8,
+    "events": [
+      [
+        "Creation",
+        176
+      ],
+      [
+        "Update",
+        169
+      ],
+      [
+        "Initialization",
+        1
+      ],
+      [
+        "Merge",
+        1
+      ],
+      [
+        "Contradiction",
+        1
+      ],
+      [
+        "Gap",
+        1
+      ]
+    ]
+  },
+  "round_trip": {
+    "verbatim": {
+      "files": 181,
+      "classes": {
+        "identical": 181
+      },
+      "validation": {
+        "example-payments": {
+          "passed": true,
+          "errors": 0,
+          "warnings": 1
+        },
+        "psychology": {
+          "passed": true,
+          "errors": 0,
+          "warnings": 107
+        },
+        "ai-concepts": {
+          "passed": true,
+          "errors": 0,
+          "warnings": 97
+        }
+      }
+    },
+    "reserialised": {
+      "files": 181,
+      "classes": {
+        "key order changed (values equal)": 172,
+        "identical": 9
+      },
+      "validation": {
+        "example-payments": {
+          "passed": true,
+          "errors": 0,
+          "warnings": 1
+        },
+        "psychology": {
+          "passed": true,
+          "errors": 0,
+          "warnings": 107
+        },
+        "ai-concepts": {
+          "passed": true,
+          "errors": 0,
+          "warnings": 97
+        }
+      }
+    },
+    "input_baseline": {
+      "example-payments": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 1
+      },
+      "psychology": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 107
+      },
+      "ai-concepts": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 97
+      }
+    },
+    "lossy_formatting": {
+      "concepts_with_yaml_comments": 2,
+      "concepts_with_flow_lists": 7
+    },
+    "sample_reserialised_head": [
+      "---",
+      "id: payment-service",
+      "tags: ",
+      "  - platform",
+      "  - payments",
+      "type: System",
+      "links: ",
+      "  - to: orders-table",
+      "    rel: depends-on",
+      "    note: Reads order totals to compute the capture amount.",
+      "  - to: payment-service-v2",
+      "    rel: superseded-by"
+    ],
+    "sample_original_head": [
+      "---",
+      "type: System",
+      "id: payment-service",
+      "title: Payment Service",
+      "description: Handles authorisation and capture for all customer payments.",
+      "resource: https://internal.example.com/services/payment",
+      "tags: [platform, payments]",
+      "aliases: [Payments API, PaymentSvc]",
+      "",
+      "# OKF v0.2 trust & lifecycle",
+      "generated:",
+      "  by: human:jane-doe"
+    ]
+  },
+  "concurrency": {
+    "runs": [
+      {
+        "mode": "last-write-wins",
+        "writers": 50,
+        "edits_each": 200,
+        "acknowledged": 10000,
+        "lost_updates": 4627,
+        "lost_pct": 46.3,
+        "retries": 0,
+        "gave_up": 0,
+        "throughput_per_s": 3606,
+        "p50_ms": 7.6,
+        "p95_ms": 46.1,
+        "wall_s": 2.8,
+        "hottest_concept": "contrast-effect"
+      },
+      {
+        "mode": "optimistic (revision)",
+        "writers": 50,
+        "edits_each": 200,
+        "acknowledged": 9933,
+        "lost_updates": 0,
+        "lost_pct": 0,
+        "retries": 60680,
+        "gave_up": 67,
+        "throughput_per_s": 333,
+        "p50_ms": 11.2,
+        "p95_ms": 772.8,
+        "wall_s": 29.8,
+        "hottest_concept": "contrast-effect"
+      },
+      {
+        "mode": "pessimistic (FOR UPDATE)",
+        "writers": 50,
+        "edits_each": 200,
+        "acknowledged": 10000,
+        "lost_updates": 0,
+        "lost_pct": 0,
+        "retries": 0,
+        "gave_up": 0,
+        "throughput_per_s": 1170,
+        "p50_ms": 24.2,
+        "p95_ms": 133.4,
+        "wall_s": 8.5,
+        "hottest_concept": "contrast-effect"
+      }
+    ],
+    "git_merge": [
+      {
+        "scenario": "both add a tag to the same flow-style list",
+        "conflict": true
+      },
+      {
+        "scenario": "both append a link to the end of the links list",
+        "conflict": true
+      },
+      {
+        "scenario": "one edits the description, the other the tags (adjacent lines)",
+        "conflict": false
+      },
+      {
+        "scenario": "one edits frontmatter, the other appends to the body",
+        "conflict": false
+      }
+    ],
+    "after_writers": {
+      "concepts_edited_raw_stale": 102,
+      "export_errors": 3221,
+      "error_kinds": {
+        "typed link not mirrored in body (§6.4)": 3221
+      }
+    },
+    "note": "50 writers x 200 read-modify-write edits on 102 concepts, Zipf s=1.1, 0-4 ms think time between read and write, pool of 25 connections"
+  },
+  "cqrs": {
+    "rebuild_172": {
+      "ms": 110,
+      "concepts": 172,
+      "declared_links": 603,
+      "inferred_links": 597,
+      "tombstones": 2,
+      "redirects": 2
+    },
+    "scaled_load": {
+      "copies": 50,
+      "ms": 377.6,
+      "concepts": 8422
+    },
+    "rebuild_scaled": {
+      "ms": 4162.4,
+      "concepts": 8422,
+      "declared_links": 30053,
+      "inferred_links": 29797,
+      "tombstones": 2,
+      "redirects": 2
+    },
+    "incremental": {
+      "writers": {
+        "mode": "optimistic (revision)",
+        "writers": 20,
+        "edits_each": 100,
+        "acknowledged": 2000,
+        "lost_updates": 0,
+        "lost_pct": 0,
+        "retries": 5613,
+        "gave_up": 0,
+        "throughput_per_s": 839,
+        "p50_ms": 4.2,
+        "p95_ms": 110.5,
+        "wall_s": 2.4,
+        "hottest_concept": "contrast-effect"
+      },
+      "events_projected": 2000,
+      "lag_p50_ms": 482.6,
+      "lag_p95_ms": 671,
+      "lag_max_ms": 704.3,
+      "concepts_findable_by_new_text": 92
+    }
+  },
+  "blue_green": {
+    "green_build": {
+      "ms": 5718.2,
+      "concepts": 8422,
+      "declared_links": 30053,
+      "inferred_links": 29797,
+      "tombstones": 2,
+      "redirects": 2
+    },
+    "new_types": [
+      "Bias",
+      "Concept",
+      "Effect",
+      "Fallacy",
+      "Framework",
+      "Heuristic",
+      "Illusion",
+      "Model",
+      "Pattern",
+      "Principle"
+    ],
+    "gate_with_old_vocabulary": {
+      "example-payments": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 1,
+        "type_vocab_warnings": 0
+      },
+      "psychology": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 201,
+        "type_vocab_warnings": 94
+      },
+      "ai-concepts": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 117,
+        "type_vocab_warnings": 20
+      }
+    },
+    "gate_with_expanded_vocabulary": {
+      "example-payments": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 1,
+        "type_vocab_warnings": 0
+      },
+      "psychology": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 107,
+        "type_vocab_warnings": 0
+      },
+      "ai-concepts": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 97,
+        "type_vocab_warnings": 0
+      }
+    },
+    "swap": {
+      "ms": 4.5,
+      "rollback_ms": 3.5,
+      "reads": 4790,
+      "reader_errors": 0,
+      "read_p50_ms": 1.5,
+      "read_p99_ms": 3.1,
+      "read_max_ms": 27.8,
+      "distinct_types_before": 5,
+      "distinct_types_after": 14
+    }
+  }
+}

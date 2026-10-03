@@ -17,6 +17,9 @@ the numbers land in [`RESULTS.md`](./RESULTS.md).
 | `real-federation/` | E7 | Two bundles exported from a working vault plus `examples/`: what does federation look like on real data? |
 | `e8-freshness/` | E8 | Add / edit / rename / delete through the real exporter: does a bundle reconcile or accumulate, and can a consumer tell? |
 | `e9-knowledgex/` | E9 | Does AI-XF interoperate with a third-party OKF producer (KnowledgeX), in both directions? |
+| `e10-database/` | E10 | Up: what happens when a department of concurrent writers moves bundles into Postgres (round trip, locking, CQRS, blue/green)? |
+| `e11-migration/` | E11 | In: what a Confluence space or SharePoint Word library keeps, loses or leaks on the way into AI-XF, naive versus mapped |
+| `e12-longview/` | E12 | Across: an AI-XF bundle federated into Longview's database and exported back out |
 
 Everything here is a fixture, not a product. Re-run with the commands in each
 directory's `run.sh`; each experiment records the tool and client versions it
