@@ -13,6 +13,7 @@ or via run.sh, which runs this file under both parsers explicitly.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -439,6 +440,46 @@ class TimestampsAliasesAndRetirement(unittest.TestCase):
         for b, extra in (("t", ()), ("u", ("--federation", "federation.ai-xf.yaml"))):
             self.assertEqual(normalize_bundle_field(self.run_t(*extra, bundle=b)[1]),
                              normalize_bundle_field(self.run_t(*extra, bundle=b, use_pyyaml=True)[1]))
+
+
+class DeclaredRels(unittest.TestCase):
+    """A custom rel the bundle declares in its own `vocabularies.rels` (§9.3),
+    or the declared `inverse` of one, is not reported as non-core. Found by
+    Longview, whose seven declared rels warned on every use (E12)."""
+
+    REL = ("---\ntype: Concept\nid: {id}\nstatus: stable\nlinks:\n"
+           "- rel: released-by\n  to: other\n- rel: released\n  to: other\n- rel: sues\n  to: other\n---\n\n"
+           "[Other](./other.md)\n")
+
+    def make(self, vocab_ref: str) -> Path:
+        import tempfile
+        root = Path(tempfile.mkdtemp(prefix="ai-xf-rels-"))
+        self.addCleanup(shutil.rmtree, root, True)
+        write_tree(root, {
+            "manifest.ai-xf.yaml": f"ai-xf: \"0.4\"\nname: r\nnamespace: r\nvocabularies:\n  types: ./vocab/types.json\n  rels: {vocab_ref}\n",
+            "vocab/types.json": '{"version": 1, "values": [{"name": "Concept"}]}',
+            "vocab/rels.json": '{"version": 1, "values": [{"name": "released-by", "inverse": "released", "definition": "x"}]}',
+            "concepts/a.md": self.REL.format(id="a"),
+            "concepts/other.md": "---\ntype: Concept\nid: other\nstatus: stable\n---\n\nx\n",
+        })
+        return root
+
+    def non_core(self, root: Path, use_pyyaml: bool = False) -> list[str]:
+        _, d = run_validator([str(root), "--level", "3", "--json"], use_pyyaml=use_pyyaml)
+        return sorted(re.search(r"non-core rel `([^`]+)`", f["message"]).group(1)
+                      for f in d["findings"] if "non-core rel" in f["message"])
+
+    def test_declared_rel_and_inverse_do_not_warn(self):
+        self.assertEqual(self.non_core(self.make("./vocab/rels.json")), ["sues"])
+
+    def test_remote_vocabulary_is_not_fetched(self):
+        self.assertEqual(self.non_core(self.make("https://example.com/rels.json")), ["released", "released-by", "sues"])
+
+    def test_parsers_agree(self):
+        if not HAS_UV:
+            self.skipTest("uv not available")
+        root = self.make("./vocab/rels.json")
+        self.assertEqual(self.non_core(root), self.non_core(root, use_pyyaml=True))
 
 
 if __name__ == "__main__":

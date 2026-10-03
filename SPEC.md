@@ -811,7 +811,7 @@ is not a concept and does not affect OKF conformance (OKF ignores non-`.md`
 files). Recommended keys:
 
 ```yaml
-ai-xf: "0.3"                     # spec version this bundle targets
+ai-xf: "0.4"                     # spec version this bundle targets
 name: my-bundle                # bundle identifier
 namespace: my-bundle           # federation namespace (§9) — required at Level 3
 description: One-line summary of the bundle.
@@ -899,6 +899,16 @@ their own sanitisation before publishing a bundle — and SHOULD remember that
 Bundles declare the version they target via `manifest.ai-xf.yaml`'s `ai-xf` key.
 Minor versions remain readable by earlier consumers under the permissive rules
 of §11.1.
+
+### Changelog — v0.4.4 (2026-10-03)
+
+**Reference validator:** a custom rel declared in the bundle's own
+`vocabularies.rels` (§9.3), or the `inverse` it declares, is no longer reported
+as non-core. Only a local vocabulary file is read; a URL is never fetched.
+Found by Longview's export (E12), whose seven declared rels warned on every
+use. **Examples:** `examples/manifest.ai-xf.yaml` now targets `0.4` and names
+its producer by actor (`human:jane-doe`), as does the §10.3 sample. No other
+change.
 
 ### Changelog — v0.4.3 (2026-10-02)
 

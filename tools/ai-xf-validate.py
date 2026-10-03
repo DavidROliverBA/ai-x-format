@@ -966,6 +966,33 @@ def federation_stats(federation: dict, bundle_reports: list[dict], bundle: Path 
     }
 
 
+def bundle_declared_rels(bundle: Path) -> set[str]:
+    """Rel names a bundle declares in its own manifest's `vocabularies.rels`
+    (§9.3), including any declared `inverse`. Only a local file, relative to
+    the bundle root, is read: the validator never fetches a URL. A declared
+    custom rel is still treated as `relates-to` by consumers that don't know
+    it (§6.2); it just isn't news to this bundle's author."""
+    manifest = bundle / MANIFEST_NAME
+    if not manifest.exists():
+        manifest = next((bundle / old for old in LEGACY_MANIFEST_NAMES if (bundle / old).exists()), manifest)
+    try:
+        man = load_yaml(manifest.read_text(encoding="utf-8")) or {}
+        ref = str((man.get("vocabularies") or {}).get("rels") or "")
+    except Exception:  # noqa: BLE001
+        return set()
+    if not ref or ref.startswith(("http://", "https://")):
+        return set()
+    try:
+        vdata = json.loads((bundle / ref).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return set()
+    names = set()
+    for item in vdata.get("values", []) if isinstance(vdata, dict) else []:
+        if isinstance(item, dict):
+            names.update(str(item[k]) for k in ("name", "inverse") if item.get(k))
+    return names
+
+
 def validate(bundle: Path, target_level: int, federation: dict | None = None):
     findings: list[Finding] = []
     concepts = []
@@ -1042,6 +1069,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
             if not fm.get("id"):
                 findings.append(Finding("error", rel, "missing `id` (required at Level 1)"))
 
+    declared_rels = None     # the bundle's own `vocabularies.rels`, read on first use
     # Concept file -> id, so links that name a file (body links, path-form `to`)
     # can be compared by identity rather than by filename (SPEC §5.2, §6.1).
     path_to_id = {(bundle / r).resolve(): cid for cid, r in ids.items()}
@@ -1126,6 +1154,8 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                 findings.append(Finding("error", rel, "`links` must be a list"))
                 continue
             btargets = body_link_targets(body, p.parent, bundle, path_to_id)
+            if declared_rels is None:
+                declared_rels = bundle_declared_rels(bundle)
             for idx, link in enumerate(links):
                 where = f"links[{idx}]"
                 if not isinstance(link, dict):
@@ -1135,7 +1165,7 @@ def validate(bundle: Path, target_level: int, federation: dict | None = None):
                 to = link.get("to")
                 if not relv:
                     findings.append(Finding("error", rel, f"{where} missing `rel`"))
-                elif relv not in CORE_RELS and relv not in EXT_RELS:
+                elif relv not in CORE_RELS and relv not in EXT_RELS and str(relv) not in declared_rels:
                     findings.append(Finding("warning", rel, f"{where} uses non-core rel `{relv}` (allowed; treated as relates-to)"))
                 if relv and federation is not None and federation.get("vocab_rels") is not None \
                         and str(relv) not in federation["vocab_rels"]:
